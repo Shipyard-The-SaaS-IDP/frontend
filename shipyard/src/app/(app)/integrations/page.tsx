@@ -3,13 +3,22 @@ import { useState } from 'react';
 import {
   GitFork, Cloud, MessageSquare, Triangle, Bell, Activity, Layers,
   CheckCircle2, Link as LinkIcon, X,
+  Box, Heart, Bot, Wand2, PenTool, Database, Mail, Briefcase,
 } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { INTEGRATIONS } from '@/lib/mock-data';
+import type { IntegrationGroup } from '@/lib/types';
 
 const LOGO_MAP: Record<string, React.ElementType> = {
   Github: GitFork, Cloud, MessageSquare, Triangle, Bell, Activity, Layers,
+  Box, Heart, Bot, Wand2, Figma: PenTool, Database, Mail, Briefcase,
 };
+
+const GROUPS: { id: IntegrationGroup; title: string; subtitle: string }[] = [
+  { id: 'build', title: 'Build tools', subtitle: 'Where your app comes from' },
+  { id: 'deploy', title: 'Deploy targets', subtitle: 'Where Shipyard ships your infrastructure' },
+  { id: 'operate', title: 'Operate', subtitle: 'Run your venture day to day' },
+];
 
 function ConnectModal({ name, onClose, onConnected }: {
   name: string;
@@ -119,13 +128,19 @@ export default function IntegrationsPage() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <TopBar
-        title="Integrations"
-        subtitle="Connect your engineering stack to Shipyard"
+        title="MCP & Integrations"
+        subtitle="Connect the tools you're already using to build, ship, and run your venture"
       />
 
-      <main style={{ flex: 1, padding: 24 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-          {integrations.map((intg, i) => {
+      <main style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 32 }}>
+        {GROUPS.map((group) => (
+        <section key={group.id}>
+          <div style={{ marginBottom: 14 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{group.title}</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{group.subtitle}</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          {integrations.filter((intg) => intg.group === group.id).map((intg, i) => {
             const Logo = LOGO_MAP[intg.logo] ?? LinkIcon;
             const connected = intg.status === 'connected';
 
@@ -244,7 +259,9 @@ export default function IntegrationsPage() {
               </div>
             );
           })}
-        </div>
+          </div>
+        </section>
+        ))}
       </main>
 
       {connecting && (

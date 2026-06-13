@@ -21,8 +21,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shipyard — Internal Developer Platform",
-  description: "Backstage is a framework. Shipyard is the platform team.",
+  title: "Shipyard — AI tools build your app. Shipyard builds everything around it.",
+  description: "The platform layer for founders building with AI coding tools — infrastructure, compliance, and operations, generated from a plain-English description of your business.",
 };
 
 export default function RootLayout({

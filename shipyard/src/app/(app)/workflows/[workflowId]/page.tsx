@@ -51,12 +51,27 @@ function LogLine({ line, index }: { line: typeof EXECUTION_LOGS[0]; index: numbe
   return (
     <div style={{
       display: 'flex',
+      alignItems: 'center',
       gap: 12,
       padding: '2px 0',
       animation: 'fadeIn 150ms ease both',
     }}>
       <span style={{ color: 'var(--text-muted)', flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>[{line.time}]</span>
       <span style={{ color, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{line.icon} {line.message}</span>
+      {'mcp' in line && line.mcp && (
+        <span style={{
+          fontSize: 10,
+          fontFamily: 'var(--font-jetbrains-mono)',
+          color: 'var(--brand-400)',
+          background: 'var(--brand-glow)',
+          border: '1px solid var(--border-brand)',
+          borderRadius: 9999,
+          padding: '1px 8px',
+          flexShrink: 0,
+        }}>
+          via {line.mcp}
+        </span>
+      )}
     </div>
   );
 }

@@ -277,27 +277,39 @@ export const ACTIVITY_FEED: ActivityEvent[] = [
 ];
 
 export const INTEGRATIONS: Integration[] = [
-  { id: 'github', name: 'GitHub', description: 'Connect your repos, automate workflows, and track deployments.', logo: 'Github', status: 'connected', detail: 'acme-org (24 repos)' },
-  { id: 'aws', name: 'AWS', description: 'Provision EC2, RDS, S3, Lambda, and more from Shipyard workflows.', logo: 'Cloud', status: 'connected', detail: 'us-east-1' },
-  { id: 'slack', name: 'Slack', description: 'Send notifications to your team channels when workflows complete.', logo: 'MessageSquare', status: 'connected', detail: '#engineering, #deployments' },
-  { id: 'gcp', name: 'Google Cloud', description: 'Provision GKE, Cloud Run, Cloud SQL, and GCS resources.', logo: 'Cloud', status: 'disconnected' },
-  { id: 'vercel', name: 'Vercel', description: 'Deploy frontend services and manage preview environments.', logo: 'Triangle', status: 'disconnected' },
-  { id: 'pagerduty', name: 'PagerDuty', description: 'Route alerts and trigger incident response workflows.', logo: 'Bell', status: 'disconnected' },
-  { id: 'datadog', name: 'Datadog', description: 'Pull service health metrics into your catalog automatically.', logo: 'Activity', status: 'disconnected' },
-  { id: 'linear', name: 'Linear', description: 'Link issues to deployments and track work in context.', logo: 'Layers', status: 'disconnected' },
+  // Build tools — where your app comes from
+  { id: 'github', name: 'GitHub', description: 'Connect the repo your AI coding tool generated. Shipyard scans it to detect stack, dependencies, and gaps.', logo: 'Github', status: 'connected', detail: 'acme-org (24 repos)', group: 'build' },
+  { id: 'base44', name: 'Base44', description: 'Import the app you built with Base44 and turn it into a real production deployment.', logo: 'Box', status: 'disconnected', group: 'build' },
+  { id: 'lovable', name: 'Lovable', description: 'Connect a Lovable project to generate the infrastructure it needs to go live.', logo: 'Heart', status: 'disconnected', group: 'build' },
+  { id: 'claude_code', name: 'Claude Code', description: 'Shipyard picks up where Claude Code leaves off — production infra for what it built.', logo: 'Bot', status: 'disconnected', group: 'build' },
+  { id: 'ai_studio', name: 'Google AI Studio / Antigravity', description: 'Bring in projects built with Google AI Studio or Antigravity for deployment.', logo: 'Wand2', status: 'disconnected', group: 'build' },
+  { id: 'figma', name: 'Figma', description: 'Pull design context and product flows to inform the Translator.', logo: 'Figma', status: 'disconnected', group: 'build' },
+
+  // Deploy targets
+  { id: 'aws', name: 'AWS', description: 'Provision EC2, RDS, S3, Lambda, and more from Shipyard workflows.', logo: 'Cloud', status: 'connected', detail: 'us-east-1', group: 'deploy' },
+  { id: 'vercel', name: 'Vercel', description: 'Deploy frontend services and manage preview environments.', logo: 'Triangle', status: 'disconnected', group: 'deploy' },
+  { id: 'gcp', name: 'Google Cloud', description: 'Provision GKE, Cloud Run, Cloud SQL, and GCS resources.', logo: 'Cloud', status: 'disconnected', group: 'deploy' },
+  { id: 'supabase', name: 'Supabase', description: 'Manage the Postgres database and auth your AI tool likely already set up.', logo: 'Database', status: 'disconnected', group: 'deploy' },
+
+  // Operate
+  { id: 'slack', name: 'Slack', description: 'Send notifications to your team channels when workflows complete.', logo: 'MessageSquare', status: 'connected', detail: '#engineering, #deployments', group: 'operate' },
+  { id: 'google_workspace', name: 'Google Workspace', description: 'Set up business email, shared drive, and calendar as part of company setup.', logo: 'Mail', status: 'disconnected', group: 'operate' },
+  { id: 'microsoft_365', name: 'Microsoft 365', description: 'Pull business context from Word/Excel docs, or set up your org\'s Microsoft tenant.', logo: 'Briefcase', status: 'disconnected', group: 'operate' },
+  { id: 'pagerduty', name: 'PagerDuty', description: 'Route alerts and trigger incident response workflows.', logo: 'Bell', status: 'disconnected', group: 'operate' },
+  { id: 'datadog', name: 'Datadog', description: 'Pull service health metrics into your catalog automatically.', logo: 'Activity', status: 'disconnected', group: 'operate' },
 ];
 
 export const EXECUTION_LOGS = [
   { time: '10:42:01', icon: '>', message: 'Starting workflow: New Service Setup', type: 'info' },
-  { time: '10:42:01', icon: '+', message: 'Creating GitHub repository: payments-v2', type: 'success' },
-  { time: '10:42:03', icon: '+', message: 'Repository created: github.com/acme/payments-v2', type: 'success' },
-  { time: '10:42:03', icon: '>', message: 'Setting up CI/CD pipeline...', type: 'info' },
-  { time: '10:42:05', icon: '+', message: 'GitHub Actions workflow configured', type: 'success' },
-  { time: '10:42:05', icon: '>', message: 'Provisioning AWS resources...', type: 'info' },
-  { time: '10:42:08', icon: '+', message: 'RDS instance created: payments-v2-db', type: 'success' },
+  { time: '10:42:01', icon: '+', message: 'Creating GitHub repository: payments-v2', type: 'success', mcp: 'GitHub MCP' },
+  { time: '10:42:03', icon: '+', message: 'Repository created: github.com/acme/payments-v2', type: 'success', mcp: 'GitHub MCP' },
+  { time: '10:42:03', icon: '>', message: 'Setting up CI/CD pipeline...', type: 'info', mcp: 'GitHub MCP' },
+  { time: '10:42:05', icon: '+', message: 'GitHub Actions workflow configured', type: 'success', mcp: 'GitHub MCP' },
+  { time: '10:42:05', icon: '>', message: 'Provisioning AWS resources...', type: 'info', mcp: 'AWS MCP' },
+  { time: '10:42:08', icon: '+', message: 'RDS instance created: payments-v2-db', type: 'success', mcp: 'AWS MCP' },
   { time: '10:42:08', icon: '>', message: 'Registering service in catalog...', type: 'info' },
   { time: '10:42:09', icon: '+', message: 'Service registered: payments-v2', type: 'success' },
-  { time: '10:42:09', icon: '>', message: 'Sending Slack notification...', type: 'info' },
-  { time: '10:42:10', icon: '+', message: 'Message sent to #engineering', type: 'success' },
+  { time: '10:42:09', icon: '>', message: 'Sending Slack notification...', type: 'info', mcp: 'Slack MCP' },
+  { time: '10:42:10', icon: '+', message: 'Message sent to #engineering', type: 'success', mcp: 'Slack MCP' },
   { time: '10:42:10', icon: '*', message: 'Workflow complete in 9s', type: 'complete' },
 ];

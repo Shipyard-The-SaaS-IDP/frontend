@@ -98,6 +98,8 @@ export interface ActivityEvent {
   type: 'deploy' | 'workflow' | 'team' | 'alert' | 'integration' | 'catalog';
 }
 
+export type IntegrationGroup = 'build' | 'deploy' | 'operate';
+
 export interface Integration {
   id: string;
   name: string;
@@ -105,4 +107,5 @@ export interface Integration {
   logo: string;
   status: 'connected' | 'disconnected';
   detail?: string;
+  group: IntegrationGroup;
 }

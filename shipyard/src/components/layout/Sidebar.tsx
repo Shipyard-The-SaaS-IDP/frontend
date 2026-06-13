@@ -2,15 +2,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Library, Zap, Plug, Users, Settings2, Anchor, ChevronLeft, ChevronRight,
+  LayoutDashboard, Library, Zap, Plug, Users, Settings2, Anchor, ChevronLeft, ChevronRight, Sparkles,
+  MessageSquare, Newspaper,
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/chat', label: 'Agent', icon: MessageSquare },
+  { href: '/daily-brief', label: 'Daily Brief', icon: Newspaper },
+  { href: '/translator', label: 'Translator', icon: Sparkles },
   { href: '/catalog', label: 'Catalog', icon: Library },
   { href: '/workflows', label: 'Workflows', icon: Zap },
-  { href: '/integrations', label: 'Integrations', icon: Plug },
+  { href: '/integrations', label: 'MCP Hub', icon: Plug },
   { href: '/team', label: 'Team', icon: Users },
 ];
 

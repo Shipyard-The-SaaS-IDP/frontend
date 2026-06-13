@@ -6,6 +6,23 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--bg-surface);
+  --color-card-foreground: var(--text-primary);
+  --color-popover: var(--bg-elevated);
+  --color-popover-foreground: var(--text-primary);
+  --color-muted: var(--bg-elevated);
+  --color-muted-foreground: var(--text-secondary);
+  --color-border: var(--border-default);
+  --color-input: var(--border-default);
+  --color-ring: var(--brand-500);
+  --color-primary: var(--brand-500);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--bg-elevated);
+  --color-secondary-foreground: var(--text-primary);
+  --color-accent: var(--bg-hover);
+  --color-accent-foreground: var(--text-primary);
+  --color-destructive: var(--status-down);
+  --color-destructive-foreground: #ffffff;
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-jetbrains-mono);
   --font-heading: var(--font-sora);
@@ -157,3 +174,21 @@
 }
 .animate-marquee:hover,
 .animate-marquee-reverse:hover { animation-play-state: paused; }
+
+.nav-link:hover {
+  color: #F1F5F9 !important;
+  background: rgba(255,255,255,0.06);
+}
+
+.lift-on-hover:hover {
+  border-color: rgba(255,255,255,0.14) !important;
+  transform: translateY(-2px);
+}
+
+/* Subtle dot-grid texture used behind hero / tour sections */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+}

@@ -1,6 +1,47 @@
 # Shipyard Feature Specs
 ## Detailed breakdown of every MVP feature
 
+**Positioning**: AI coding tools build your app. Shipyard builds everything around it.
+**ICP**: Solo founders / 1-5 person teams who built their MVP with an AI coding tool (Base44, Lovable, Bolt, Claude Code, Antigravity, Google AI Studio, etc.) and now need it to survive contact with real users, compliance, and eventual hires.
+
+---
+
+## Feature 0: The Translator (Business Intel → Tech Intel)
+
+### What it does
+The new centerpiece. A founder describes their business in plain English (or pastes their business plan / pitch deck text). Shipyard extracts the technical implications and produces a "Tech Brief" — the translation layer between "what I'm building" and "what infrastructure that requires."
+
+### User Stories
+- As a non-technical founder, I can describe my business idea and get back a recommended architecture, stack, and compliance checklist — without knowing what any of those words mean going in
+- As a founder who already has a repo from Base44/Lovable/Claude Code, I can connect it so the Translator factors in what's actually been built, not just what I describe
+- As a founder, I can hand the Tech Brief straight to the Architect to generate a real deployment workflow
+
+### Acceptance Criteria for Demo
+- [ ] Text input accepts a multi-sentence business description (or pasted doc text)
+- [ ] Optional: "Connect repo" shows a connected GitHub repo with detected stack (can be pre-seeded for demo)
+- [ ] Submit extracts and displays tags: industry, estimated scale, team size, compliance needs (HIPAA/SOC2/GDPR)
+- [ ] Generates a Tech Brief card showing: architecture pattern, recommended stack, compliance-to-infra mapping, estimated monthly cost
+- [ ] "Generate workflow" button hands off to the Architect/Workflow Builder with pre-filled nodes based on the brief
+- [ ] Works for at least these demo inputs:
+  1. "We're a telehealth startup connecting rural clinics with specialists. Expecting 5,000 patients in year one, need HIPAA compliance, small team of 3 engineers."
+  2. "We're a climate nonprofit building a donation tracking app for small NGOs. Low budget, expect a few hundred users."
+  3. "We built an MVP with Base44 — a marketplace app with Next.js and Supabase. Need to get it production-ready for a launch next month."
+
+### UX Flow
+```
+1. /translator → input panel (left) + Tech Brief panel (right, empty state)
+2. User types business description or connects repo
+3. Clicks "Translate to tech brief"
+4. Loading: "Reading your business..." pulsing indicator
+5. Tags appear (industry, scale, team size, compliance)
+6. Tech Brief card populates: architecture, stack, compliance mapping, cost estimate
+7. CTA: "Generate workflow" → /workflows/new with pre-filled Architect output
+```
+
+### Design Notes
+- Compliance tags use the `degraded` (amber) color when flagged as required, `healthy` (green) once mapped to controls
+- Tech Brief fields render as key-value rows in a card, matching the existing `.card` style
+
 ---
 
 ## Feature 1: Service Catalog
@@ -190,34 +231,50 @@ The home screen. At-a-glance health of the entire platform, recent activity, qui
 
 ---
 
-## Feature 5: Integrations Panel
+## Feature 5: MCP / Integrations Hub
 
 ### What it does
-Shows connected tools and allows connecting new ones. For the demo, connection is stubbed.
+Shows connected tools, grouped by role in the founder's stack, and allows connecting new ones. For the demo, connection is stubbed (GitHub may be real if time allows).
 
 ### Acceptance Criteria for Demo
-- [ ] 8 integrations shown in grid
-- [ ] 3 shown as "Connected" with org/account info
-- [ ] 5 shown as "Not Connected" with "Connect" button
-- [ ] Clicking "Connect" on a disconnected integration shows a mock OAuth flow (just a modal saying "Connecting..." then "Connected!")
+- [ ] Integrations grouped into three sections: **Build tools**, **Deploy targets**, **Operate**
+- [ ] At least 3 shown as "Connected" with org/account info (one per section)
+- [ ] Remaining shown as "Not Connected" with "Connect" button
+- [ ] Clicking "Connect" on a disconnected integration shows a mock OAuth flow (modal: "Connecting..." then "Connected!")
 - [ ] Connected integrations show: logo, name, connected account name, disconnect option
 
 ### Integrations to Show
 
+**Build tools** (where your app comes from)
 | Integration | Status | Detail |
 |-------------|--------|--------|
 | GitHub | ✅ Connected | acme-org (24 repos) |
+| Base44 | ○ Not connected | |
+| Lovable | ○ Not connected | |
+| Claude Code | ○ Not connected | |
+| Google AI Studio / Antigravity | ○ Not connected | |
+| Figma | ○ Not connected | |
+
+**Deploy targets**
+| Integration | Status | Detail |
+|-------------|--------|--------|
 | AWS | ✅ Connected | us-east-1 |
-| Slack | ✅ Connected | #engineering, #deployments |
-| Google Cloud | ○ Not connected | |
 | Vercel | ○ Not connected | |
+| GCP | ○ Not connected | |
+| Supabase | ○ Not connected | |
+
+**Operate**
+| Integration | Status | Detail |
+|-------------|--------|--------|
+| Slack | ✅ Connected | #engineering, #deployments |
+| Google Workspace | ○ Not connected | |
+| Microsoft 365 | ○ Not connected | |
 | PagerDuty | ○ Not connected | |
 | Datadog | ○ Not connected | |
-| Linear | ○ Not connected | |
 
 ---
 
-## Out of Scope for Google I/O (Roadmap Talking Points)
+## Out of Scope for AIVA Demo (Roadmap Talking Points)
 
 These are things to mention verbally but not demo:
 
@@ -225,13 +282,16 @@ These are things to mention verbally but not demo:
 "We're building an AI agent that automatically investigates incidents — correlates the alert with recent deploys, scans logs, posts a summary to Slack, and can execute a fix with one-click approval. No SRE required."
 
 **Platform Memory**
-"Over time, Shipyard builds institutional knowledge about how your team operates — every workflow run, every incident resolved. New developers can ask it questions and get answers grounded in your actual history."
+"Over time, Shipyard builds institutional knowledge about how your venture operates — every workflow run, every deploy. When you eventually hire your first engineer, they inherit a fully documented system instead of a black box."
 
-**Real GitHub/AWS Integration**
-"The integrations are stubbed in the demo but the real OAuth flows and API connections are on the immediate roadmap."
+**Real GitHub/AWS/Vercel Integration**
+"The integrations are stubbed in the demo but the real OAuth flows and API connections are on the immediate roadmap, starting with GitHub."
+
+**Marketing & Business Layer (future)**
+"Once your infrastructure is live, the same platform extends to business health — connecting analytics (PostHog/GA), auto-drafting changelogs when features ship, and linking technical milestones to marketing actions. Shipyard becomes the operating system for the whole company, not just the infra."
 
 **Team Permissions & Access Control**
-"We're deliberately keeping permissions simple in V1 — admin or member. Fine-grained access control is coming once we understand how teams actually use it."
+"We're deliberately keeping permissions simple in V1 — single founder or small team. Fine-grained access control comes once teams grow past the founding group."
 
 **Billing & Multi-Tenant**
-"Pricing model is per-seat SaaS. We're talking to early customers now."
+"Pricing model is per-seat SaaS with a generous free tier for solo founders. We're talking to early customers now."

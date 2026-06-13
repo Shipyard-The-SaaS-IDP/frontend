@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Server, Zap, Users, Clock, PlusCircle, UserPlus, Cloud,
+  Server, Zap, Users, Clock, UserPlus, Cloud,
   Sparkles, CheckCircle2, AlertTriangle, ArrowUpRight,
   Rocket, Library, Plug,
 } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { SERVICES, ACTIVITY_FEED, TEAM_MEMBERS } from '@/lib/mock-data';
 import type { ServiceStatus } from '@/lib/types';
+import { RevealGroup, RevealItem } from '@/components/marketing/Reveal';
 
 function useCountUp(target: number, duration = 1200) {
   const [value, setValue] = useState(0);
@@ -32,8 +33,9 @@ function MetricCard({ label, value, trend, icon: Icon, color }: {
   icon: React.ElementType;
   color: string;
 }) {
-  const numericValue = typeof value === 'number' ? value : null;
-  const displayed = numericValue !== null ? useCountUp(numericValue) : value;
+  const numericValue = typeof value === 'number' ? value : 0;
+  const counted = useCountUp(numericValue);
+  const displayed = typeof value === 'number' ? counted : value;
 
   return (
     <div style={{
@@ -163,17 +165,17 @@ export default function DashboardPage() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="Dashboard" subtitle="Welcome back. Here's what's happening." />
+      <TopBar title="Dashboard" subtitle="Everything you've shipped, in one place." />
 
       <main style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* Metric Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          <MetricCard label="Total Services" value={10} trend="↑ +2 this month" icon={Server} color="#6366F1" />
-          <MetricCard label="Workflows Run" value={24} trend="↑ this week" icon={Zap} color="#10B981" />
-          <MetricCard label="Team Members" value={TEAM_MEMBERS.length} icon={Users} color="#F59E0B" />
-          <MetricCard label="Last Deploy" value="2h ago" icon={Clock} color="#38BDF8" />
-        </div>
+        <RevealGroup style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <RevealItem><MetricCard label="Services Running" value={10} trend="↑ +2 this month" icon={Server} color="#6366F1" /></RevealItem>
+          <RevealItem><MetricCard label="Automations Run" value={24} trend="↑ this week" icon={Zap} color="#10B981" /></RevealItem>
+          <RevealItem><MetricCard label="Team Members" value={TEAM_MEMBERS.length} icon={Users} color="#F59E0B" /></RevealItem>
+          <RevealItem><MetricCard label="Last Deploy" value="2h ago" icon={Clock} color="#38BDF8" /></RevealItem>
+        </RevealGroup>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
           {/* Activity Feed */}
@@ -266,9 +268,10 @@ export default function DashboardPage() {
                 </h2>
               </div>
               <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <QuickActionButton href="/workflows/new" icon={Sparkles} label="New Service" color="#6366F1" />
-                <QuickActionButton href="/workflows/developer-onboarding" icon={UserPlus} label="Onboard Developer" color="#10B981" />
+                <QuickActionButton href="/translator" icon={Sparkles} label="Translate a New Idea" color="#6366F1" />
+                <QuickActionButton href="/workflows/new" icon={Zap} label="Generate a Workflow" color="#10B981" />
                 <QuickActionButton href="/workflows/spin-up-environment" icon={Cloud} label="New Environment" color="#F59E0B" />
+                <QuickActionButton href="/workflows/developer-onboarding" icon={UserPlus} label="Add a Teammate" color="#38BDF8" />
               </div>
             </div>
 

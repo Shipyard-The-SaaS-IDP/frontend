@@ -1,6 +1,6 @@
 'use client';
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, ArrowRight, Play, Edit } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { useWorkflowStore } from '@/store/workflows';
@@ -83,27 +83,29 @@ const EXAMPLE_PROMPTS = [
 
 export default function ArchitectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addWorkflow } = useWorkflowStore();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<(Partial<Workflow> & { explanation?: string }) | null>(null);
   const [generatedId, setGeneratedId] = useState<string | null>(null);
 
-  const handleGenerate = useCallback(async () => {
-    if (!prompt.trim()) return;
+  const handleGenerate = useCallback(async (overridePrompt?: string) => {
+    const effectivePrompt = overridePrompt ?? prompt;
+    if (!effectivePrompt.trim()) return;
     setLoading(true);
     setResult(null);
 
     await new Promise((r) => setTimeout(r, 1800));
 
-    const shortcut = detectShortcut(prompt);
+    const shortcut = detectShortcut(effectivePrompt);
     const template = shortcut ? DEMO_SHORTCUTS[shortcut] : DEMO_SHORTCUTS.fastapi;
 
     const id = `generated-${Date.now()}`;
     const workflow: Workflow = {
       id,
       name: template.name ?? 'Generated Workflow',
-      description: template.description ?? prompt,
+      description: template.description ?? effectivePrompt,
       icon: 'Sparkles',
       nodes: template.nodes ?? [],
       edges: template.edges ?? [],
@@ -118,6 +120,16 @@ export default function ArchitectPage() {
     setResult({ ...template });
     setLoading(false);
   }, [prompt, addWorkflow]);
+
+  useEffect(() => {
+    const incomingPrompt = searchParams.get('prompt');
+    if (!incomingPrompt) return;
+    setPrompt(incomingPrompt);
+    if (searchParams.get('autoGenerate') === 'true') {
+      handleGenerate(incomingPrompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -194,7 +206,7 @@ export default function ArchitectPage() {
               {' '}to generate
             </p>
             <button
-              onClick={handleGenerate}
+              onClick={() => handleGenerate()}
               disabled={!prompt.trim() || loading}
               style={{
                 display: 'flex',
