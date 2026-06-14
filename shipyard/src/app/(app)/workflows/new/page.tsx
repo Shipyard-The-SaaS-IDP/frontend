@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, ArrowRight, Play, Edit } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
@@ -81,7 +81,7 @@ const EXAMPLE_PROMPTS = [
   'Create a staging environment for our payments service',
 ];
 
-export default function ArchitectPage() {
+function ArchitectPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addWorkflow } = useWorkflowStore();
@@ -415,5 +415,13 @@ export default function ArchitectPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ArchitectPage() {
+  return (
+    <Suspense fallback={null}>
+      <ArchitectPageContent />
+    </Suspense>
   );
 }
