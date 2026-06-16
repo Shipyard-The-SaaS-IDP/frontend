@@ -201,6 +201,52 @@ export function DashboardPreview() {
   );
 }
 
+export function ComparisonBar({
+  color,
+  beforeLabel,
+  beforeValue,
+  beforePct,
+  afterLabel,
+  afterValue,
+  afterPct,
+}: {
+  color: string;
+  beforeLabel: string;
+  beforeValue: string;
+  beforePct: number;
+  afterLabel: string;
+  afterValue: string;
+  afterPct: number;
+}) {
+  const rows = [
+    { label: beforeLabel, value: beforeValue, pct: beforePct, fill: '#475569' },
+    { label: afterLabel, value: afterValue, pct: afterPct, fill: color },
+  ];
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] p-4" style={{ background: '#111118' }}>
+      {rows.map((row, i) => (
+        <div key={row.label} className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[12px] leading-[1.4] text-[#94A3B8]">{row.label}</span>
+            <span
+              className="shrink-0 font-mono text-[12px] font-semibold"
+              style={{ color: i === 0 ? '#64748B' : color }}
+            >
+              {row.value}
+            </span>
+          </div>
+          <div className="h-[6px] w-full overflow-hidden rounded-full bg-white/[0.05]">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${row.pct}%`, background: row.fill }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const PREVIEWS: Record<string, () => React.ReactNode> = {
   translator: () => <TranslatorPreview />,
   architect: () => <ArchitectPreview />,

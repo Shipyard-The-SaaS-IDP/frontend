@@ -1,12 +1,11 @@
 import { Anchor, ArrowRight, CheckCircle2, X } from 'lucide-react';
 import { Reveal, RevealGroup, RevealItem } from './Reveal';
 import { SectionHeader } from './SectionHeader';
-import { PREVIEWS, TranslatorPreview } from './Previews';
+import { PREVIEWS, TranslatorPreview, ComparisonBar } from './Previews';
 import { IntegrationsMarquee } from './Marquee';
-import { WaitlistForm } from './Waitlist';
 import { FEATURE_SECTIONS, PAIN_POINTS, HOW_IT_WORKS } from './data';
 
-export function Hero({ onJoinClick }: { onJoinClick: () => void }) {
+export function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-10 pb-20 pt-[140px] text-center">
       <div className="bg-dot-grid pointer-events-none absolute inset-x-0 top-0 h-[640px]" />
@@ -40,13 +39,13 @@ export function Hero({ onJoinClick }: { onJoinClick: () => void }) {
       </Reveal>
 
       <Reveal delay={150} className="relative mb-[76px] flex flex-wrap justify-center gap-2.5">
-        <button
-          onClick={onJoinClick}
-          className="flex items-center gap-2 rounded-[10px] border-none px-6 py-3 text-[14.5px] font-semibold text-[#0A0A0F] transition-opacity hover:opacity-85"
+        <a
+          href="/signup"
+          className="flex items-center gap-2 rounded-[10px] border-none px-6 py-3 text-[14.5px] font-semibold text-[#0A0A0F] no-underline transition-opacity hover:opacity-85"
           style={{ background: '#F1F5F9' }}
         >
-          Join the waitlist <ArrowRight size={15} />
-        </button>
+          Get started <ArrowRight size={15} />
+        </a>
         <a
           href="#tour"
           className="flex items-center gap-2 rounded-[10px] border border-white/[0.09] px-6 py-3 text-[14.5px] font-medium text-[#94A3B8] no-underline transition-all hover:border-white/20 hover:bg-white/[0.04] hover:text-[#F1F5F9]"
@@ -124,29 +123,38 @@ export function ProductTour() {
           description="Not a framework to configure. A complete production layer for the app your AI tool already built."
           maxWidth={480}
         />
-        <div className="flex flex-col gap-[100px]">
-          {FEATURE_SECTIONS.map(({ id, icon: Icon, color, eyebrow, title, description, bullets }, i) => {
+        <div className="flex flex-col gap-[88px]">
+          {FEATURE_SECTIONS.map(({ id, icon: Icon, color, eyebrow, title, description, bullets, stat }, i) => {
             const textBlock = (
               <div>
-                <div className="mb-[18px] flex items-center gap-2.5">
+                <div className="mb-4 flex items-center gap-2.5">
                   <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px]" style={{ background: `${color}14`, border: `1px solid ${color}28` }}>
                     <Icon size={16} color={color} strokeWidth={1.8} />
                   </div>
                   <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color }}>{eyebrow}</p>
                 </div>
-                <h3 className="mb-3.5 font-heading text-[clamp(22px,2.8vw,30px)] font-bold leading-[1.2] tracking-[-0.025em] text-[#F1F5F9]">{title}</h3>
-                <p className="mb-5 max-w-[460px] text-[15px] leading-[1.75] text-[#64748B]">{description}</p>
-                <ul className="flex flex-col gap-2.5 list-none p-0 m-0">
+                <h3 className="mb-3 font-heading text-[clamp(24px,3vw,32px)] font-bold leading-[1.2] tracking-[-0.025em] text-[#F1F5F9]">{title}</h3>
+                <p className="mb-5 max-w-[460px] text-[15.5px] leading-[1.75] text-[#A3AEC2]">{description}</p>
+                <ul className="mb-6 flex flex-col gap-2.5 list-none p-0 m-0">
                   {bullets.map((b) => (
-                    <li key={b} className="flex items-start gap-2.5 text-[13.5px] leading-[1.6] text-[#94A3B8]">
+                    <li key={b} className="flex items-start gap-2.5 text-[14px] leading-[1.6] text-[#CBD5E1]">
                       <CheckCircle2 size={14} color={color} strokeWidth={2.2} className="mt-0.5 shrink-0" />
                       {b}
                     </li>
                   ))}
                 </ul>
+                <ComparisonBar color={color} {...stat} />
               </div>
             );
-            const previewBlock = <div>{PREVIEWS[id]()}</div>;
+            const previewBlock = (
+              <div className="relative">
+                <div
+                  className="pointer-events-none absolute -inset-10 -z-10 rounded-[40px] opacity-60 blur-3xl"
+                  style={{ background: `radial-gradient(circle at 50% 50%, ${color}26 0%, transparent 70%)` }}
+                />
+                {PREVIEWS[id]()}
+              </div>
+            );
             const reverse = i % 2 === 1;
             return (
               <Reveal key={id}>
@@ -190,7 +198,7 @@ export { IntegrationsMarquee };
 
 export function WaitlistCTA() {
   return (
-    <section id="waitlist" className="relative overflow-hidden border-t border-white/[0.05] px-12 py-[120px] text-center">
+    <section id="get-started" className="relative overflow-hidden border-t border-white/[0.05] px-12 py-[120px] text-center">
       <div className="bg-dot-grid pointer-events-none absolute inset-0" />
       <div
         className="pointer-events-none absolute inset-0"
@@ -202,15 +210,21 @@ export function WaitlistCTA() {
             <Anchor size={24} color="white" strokeWidth={2.5} />
           </div>
           <h2 className="mb-3.5 font-heading text-[clamp(28px,4vw,46px)] font-bold leading-[1.12] tracking-[-0.035em] text-[#F1F5F9]">
-            Get early access.
+            Ready to ship the rest of it?
           </h2>
           <p className="mx-auto mb-10 max-w-[400px] text-[15.5px] leading-[1.7] text-[#64748B]">
-            We&apos;re onboarding in small batches. Join the list and we&apos;ll reach out as soon as your spot is ready.
+            Connect your repo and get a production-ready plan in minutes. No credit card required.
           </p>
         </Reveal>
         <Reveal delay={100}>
-          <WaitlistForm />
-          <p className="mt-4 text-xs text-[#334155]">No spam. Unsubscribe any time.</p>
+          <a
+            href="/signup"
+            className="inline-flex items-center gap-2 rounded-[10px] border-none px-7 py-3.5 text-[15px] font-semibold text-white no-underline transition-opacity hover:opacity-85"
+            style={{ background: '#6366F1' }}
+          >
+            Try it out <ArrowRight size={16} />
+          </a>
+          <p className="mt-4 text-xs text-[#334155]">Free to start. Takes about 2 minutes.</p>
         </Reveal>
       </div>
     </section>
@@ -230,7 +244,7 @@ export function Footer() {
       <div className="flex gap-5">
         <a href="#tour" className="text-xs text-[#475569] no-underline">Product</a>
         <a href="#how-it-works" className="text-xs text-[#475569] no-underline">How it works</a>
-        <a href="#waitlist" className="text-xs text-[#475569] no-underline">Waitlist</a>
+        <a href="/signup" className="text-xs text-[#475569] no-underline">Get started</a>
       </div>
     </footer>
   );

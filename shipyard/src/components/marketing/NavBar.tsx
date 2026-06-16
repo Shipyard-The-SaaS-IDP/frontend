@@ -1,6 +1,6 @@
 import { Anchor } from 'lucide-react';
 
-export function NavBar({ onJoinClick }: { onJoinClick: () => void }) {
+export function NavBar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] flex justify-center px-6 pt-4">
       <nav className="flex h-[52px] w-full max-w-[1080px] items-center justify-between rounded-[14px] border border-white/[0.07] bg-[rgba(17,17,24,0.7)] pl-3.5 pr-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-[20px] backdrop-saturate-[160%]">
@@ -17,13 +17,13 @@ export function NavBar({ onJoinClick }: { onJoinClick: () => void }) {
           <a href="#how-it-works" className="nav-link rounded-lg px-3.5 py-[7px] text-[13.5px] text-[#94A3B8] no-underline transition-colors">
             How it works
           </a>
-          <button
-            onClick={onJoinClick}
-            className="ml-1.5 flex items-center gap-1.5 rounded-[9px] border-none px-4 py-2 text-[13.5px] font-semibold text-[#0A0A0F] transition-opacity hover:opacity-85"
+          <a
+            href="/signup"
+            className="ml-1.5 flex items-center gap-1.5 rounded-[9px] border-none px-4 py-2 text-[13.5px] font-semibold text-[#0A0A0F] no-underline transition-opacity hover:opacity-85"
             style={{ background: '#F1F5F9' }}
           >
-            Join waitlist
-          </button>
+            Get started
+          </a>
         </div>
       </nav>
     </div>
