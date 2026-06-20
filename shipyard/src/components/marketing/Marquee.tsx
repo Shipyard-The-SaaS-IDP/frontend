@@ -1,13 +1,16 @@
 import { Reveal } from './Reveal';
-import { ROW0, ROW1, ROW2, ROW3, type LogoItem } from './logos';
+import { ROW1, ROW2, ROW3, type LogoItem } from './logos';
 
-function LogoCard({ name, icon, bg }: LogoItem) {
+function LogoCard({ name, icon }: LogoItem) {
   return (
-    <div className="flex shrink-0 select-none items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-[18px] py-2.5">
-      <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg border border-white/[0.07]" style={{ background: bg }}>
-        {icon}
-      </div>
-      <span className="whitespace-nowrap text-[13px] font-medium text-[#94A3B8]">{name}</span>
+    <div
+      className="flex shrink-0 select-none items-center gap-2.5 rounded-2xl border bg-white px-6 py-3.5 grayscale opacity-55 transition-all duration-200 hover:grayscale-0 hover:opacity-100 hover:-translate-y-0.5"
+      style={{ borderColor: '#EAEAEA', boxShadow: 'none' }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 12px 26px -14px rgba(10,36,99,0.4)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+    >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center">{icon}</span>
+      <span className="whitespace-nowrap font-heading text-[18px] font-bold tracking-[-0.01em]" style={{ color: '#0A2463' }}>{name}</span>
     </div>
   );
 }
@@ -15,43 +18,36 @@ function LogoCard({ name, icon, bg }: LogoItem) {
 const maskStyle = { WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' };
 
 export function IntegrationsMarquee() {
+  const rowA = [...ROW1, ...ROW2];
+  const rowB = [...ROW3, ...ROW1.slice(0, 4)];
+
   return (
-    <section className="py-[90px] text-center">
-      <Reveal>
-        <p className="mb-11 text-xs font-semibold uppercase tracking-[0.12em] text-[#334155]">
-          Connects to everything you&apos;re already using
-        </p>
-      </Reveal>
-      <div className="flex flex-col gap-3">
-        <div className="overflow-hidden" style={maskStyle}>
-          <div className="animate-marquee-reverse flex flex-nowrap gap-3" style={{ animationDuration: '34s' }}>
-            {[...ROW0, ...ROW0, ...ROW0, ...ROW0].map((item, i) => (
-              <LogoCard key={i} {...item} />
-            ))}
-          </div>
-        </div>
-        <div className="overflow-hidden" style={maskStyle}>
-          <div className="animate-marquee flex flex-nowrap gap-3">
-            {[...ROW1, ...ROW1, ...ROW1, ...ROW1].map((item, i) => (
-              <LogoCard key={i} {...item} />
-            ))}
-          </div>
-        </div>
-        <div className="overflow-hidden" style={maskStyle}>
-          <div className="animate-marquee-reverse flex flex-nowrap gap-3">
-            {[...ROW2, ...ROW2, ...ROW2, ...ROW2].map((item, i) => (
-              <LogoCard key={i} {...item} />
-            ))}
-          </div>
-        </div>
-        <div className="overflow-hidden" style={maskStyle}>
-          <div className="animate-marquee flex flex-nowrap gap-3" style={{ animationDuration: '30s' }}>
-            {[...ROW3, ...ROW3, ...ROW3, ...ROW3].map((item, i) => (
-              <LogoCard key={i} {...item} />
-            ))}
-          </div>
-        </div>
+    <section id="integrations" className="border-y" style={{ background: '#FAFAFA', borderColor: '#EAEAEA' }}>
+      <div className="mx-auto max-w-[1180px] px-8 pb-[30px] pt-[84px] text-center">
+        <Reveal>
+          <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Integrations · MCP</p>
+          <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>
+            One agent, plugged into your whole toolchain.
+          </h2>
+          <p className="mx-auto max-w-[600px] text-[17px] leading-[1.6]" style={{ color: '#6B6B6B' }}>
+            Shipyard speaks to the tools you already run through MCP, so it understands your stack the way your team does and acts right at your infrastructure layer.
+          </p>
+        </Reveal>
       </div>
+      <Reveal className="pb-[84px]">
+        <div className="flex flex-col gap-[18px]" style={{ WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)' }}>
+          <div className="overflow-hidden" style={maskStyle}>
+            <div className="animate-marquee flex flex-nowrap gap-4" style={{ animationDuration: '44s' }}>
+              {[...rowA, ...rowA, ...rowA].map((item, i) => <LogoCard key={i} {...item} />)}
+            </div>
+          </div>
+          <div className="overflow-hidden" style={maskStyle}>
+            <div className="animate-marquee-reverse flex flex-nowrap gap-4" style={{ animationDuration: '52s' }}>
+              {[...rowB, ...rowB, ...rowB].map((item, i) => <LogoCard key={i} {...item} />)}
+            </div>
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }

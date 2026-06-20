@@ -1,19 +1,24 @@
 import { NavBar } from '@/components/marketing/NavBar';
 import {
-  Hero, StatsBar, PainPoints, ProductTour, HowItWorks, IntegrationsMarquee, WaitlistCTA, Footer,
+  Hero, InfraLayerSection, ProblemSection, AutoDiscoveryShowcase, CapabilitiesShowcase,
+  IntegrationsMarquee, HowItWorks, ImpactSection, PricingSection, FinalCTA, Footer,
 } from '@/components/marketing/Sections';
 
 export default function LandingPage() {
   return (
-    <div className="w-full min-h-screen text-[#F1F5F9]" style={{ background: '#0A0A0F' }}>
+    <div className="w-full min-h-screen" style={{ background: '#fff', color: '#6B6B6B' }}>
+      <span id="top" />
       <NavBar />
       <Hero />
-      <StatsBar />
-      <PainPoints />
-      <ProductTour />
-      <HowItWorks />
+      <InfraLayerSection />
+      <ProblemSection />
+      <AutoDiscoveryShowcase />
+      <CapabilitiesShowcase />
       <IntegrationsMarquee />
-      <WaitlistCTA />
+      <HowItWorks />
+      <ImpactSection />
+      <PricingSection />
+      <FinalCTA />
       <Footer />
     </div>
   );

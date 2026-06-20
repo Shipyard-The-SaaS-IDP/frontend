@@ -5,7 +5,7 @@ import "./globals.css";
 const sora = Sora({
   variable: "--font-sora",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const dmSans = DM_Sans({
@@ -21,8 +21,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shipyard — AI tools build your app. Shipyard builds everything around it.",
-  description: "The platform layer for founders building with AI coding tools — infrastructure, compliance, and operations, generated from a plain-English description of your business.",
+  title: "Shipyard — Your stack, mapped.",
+  description: "Shipyard plugs into your codebases and environments, then maps every service, owner, and dependency for you. Agentic AI at the infrastructure-as-code layer — no YAML required.",
 };
 
 export default function RootLayout({
