@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
-import { api, type ServicesResponse } from '@/lib/api';
+import { api, ApiError, type ServicesResponse } from '@/lib/api';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -16,9 +16,11 @@ export default function CatalogPage() {
   const [filter, setFilter] = useState('all');
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     const params = new URLSearchParams();
     if (query.trim()) params.set('q', query.trim());
     if (filter !== 'all') params.set('filter', filter);
@@ -29,6 +31,9 @@ export default function CatalogPage() {
           return;
         }
         setData(res);
+      })
+      .catch((e) => {
+        setError(e instanceof ApiError ? e.message : 'Could not reach the Shipyard API. Is NEXT_PUBLIC_API_URL set correctly?');
       })
       .finally(() => setLoading(false));
   }, [query, filter, router]);
@@ -70,7 +75,9 @@ export default function CatalogPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (
+        <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>
+      ) : loading ? (
         <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading…</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>

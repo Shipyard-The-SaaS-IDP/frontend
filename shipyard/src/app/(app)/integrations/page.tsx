@@ -2,14 +2,17 @@
 import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
-import { api, type ConnectorsResponse } from '@/lib/api';
+import { api, ApiError, type ConnectorsResponse } from '@/lib/api';
 
 export default function IntegrationsPage() {
   const [data, setData] = useState<ConnectorsResponse | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<ConnectorsResponse>('/connectors').then(setData);
+    api.get<ConnectorsResponse>('/connectors')
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not reach the Shipyard API. Is NEXT_PUBLIC_API_URL set correctly?'));
   }, []);
 
   const toggle = async (id: string) => {
@@ -29,7 +32,8 @@ export default function IntegrationsPage() {
         Connect the tools Shipyard reads from. {data?.connectedCount ?? 0} connected.
       </p>
 
-      {!data && <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading…</p>}
+      {error && <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>}
+      {!data && !error && <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading…</p>}
 
       {data?.groups.map((group) => (
         <div key={group.category} style={{ marginBottom: 26 }}>

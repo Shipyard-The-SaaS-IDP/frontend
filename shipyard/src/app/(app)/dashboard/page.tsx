@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
+import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -9,6 +9,7 @@ export default function DashboardPage() {
   const [services, setServices] = useState<ServicesResponse | null>(null);
   const [detail, setDetail] = useState<ServiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadDetail = useCallback((id: string) => {
     api.get<ServiceDetail>(`/services/${id}`).then(setDetail);
@@ -28,6 +29,9 @@ export default function DashboardPage() {
       const first = svcRes.services[0];
       if (first) loadDetail(first.id);
       setLoading(false);
+    }).catch((e) => {
+      setError(e instanceof ApiError ? e.message : 'Could not reach the Shipyard API. Is NEXT_PUBLIC_API_URL set correctly?');
+      setLoading(false);
     });
   }, [router, loadDetail]);
 
@@ -35,6 +39,10 @@ export default function DashboardPage() {
     const match = services?.services.find((s) => s.name === nodeName);
     if (match) loadDetail(match.id);
   };
+
+  if (error) {
+    return <div style={{ padding: 32, color: '#ff5f57', fontSize: 14 }}>{error}</div>;
+  }
 
   if (loading || !map || !services) {
     return <div style={{ padding: 32, color: '#6B6B6B', fontSize: 14 }}>Loading your service map…</div>;
