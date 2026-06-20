@@ -1,248 +1,109 @@
 'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import { Search, Filter, ExternalLink, Zap } from 'lucide-react';
-import TopBar from '@/components/layout/TopBar';
-import StatusBadge from '@/components/catalog/StatusBadge';
-import StackTag from '@/components/catalog/StackTag';
-import { SERVICES } from '@/lib/mock-data';
-import type { ServiceStatus } from '@/lib/types';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search } from 'lucide-react';
+import { api, type ServicesResponse } from '@/lib/api';
 
-const STATUS_FILTERS: { label: string; value: ServiceStatus | 'all' }[] = [
+const FILTERS = [
   { label: 'All', value: 'all' },
   { label: 'Healthy', value: 'healthy' },
   { label: 'Degraded', value: 'degraded' },
-  { label: 'Deploying', value: 'deploying' },
-  { label: 'Down', value: 'down' },
 ];
 
-function Avatar({ initials, color = 'var(--brand-900)' }: { initials: string; color?: string }) {
-  return (
-    <div style={{
-      width: 24,
-      height: 24,
-      borderRadius: '50%',
-      background: color,
-      border: '1px solid var(--border-default)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 9,
-      fontWeight: 600,
-      color: 'var(--brand-400)',
-      flexShrink: 0,
-    }}>
-      {initials}
-    </div>
-  );
-}
-
 export default function CatalogPage() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ServiceStatus | 'all'>('all');
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [data, setData] = useState<ServicesResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = SERVICES.filter((svc) => {
-    const matchesSearch = svc.name.toLowerCase().includes(search.toLowerCase()) ||
-      svc.description.toLowerCase().includes(search.toLowerCase()) ||
-      svc.stack.some((s) => s.toLowerCase().includes(search.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || svc.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (filter !== 'all') params.set('filter', filter);
+    api.get<ServicesResponse>(`/services?${params.toString()}`)
+      .then((res) => {
+        if (res.total === 0 && !query && filter === 'all') {
+          router.replace('/onboarding');
+          return;
+        }
+        setData(res);
+      })
+      .finally(() => setLoading(false));
+  }, [query, filter, router]);
+
+  const dynamicFilters = useMemo(() => {
+    const tags = new Set<string>();
+    data?.services.forEach((s) => s.tags.forEach((t) => tags.add(t)));
+    return [...FILTERS, ...[...tags].slice(0, 3).map((t) => ({ label: t, value: t }))];
+  }, [data]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <TopBar
-        title="Service Catalog"
-        subtitle={`${SERVICES.length} services registered`}
-      />
+    <div style={{ padding: '28px 32px', maxWidth: 1180 }}>
+      <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 25, letterSpacing: '-0.02em', color: '#0A2463', margin: '0 0 4px' }}>Service catalog</h1>
+      <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 22px' }}>Every service Shipyard discovered, always current.</p>
 
-      <main style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Search + Filters */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            flex: 1,
-            position: 'relative',
-            maxWidth: 420,
-          }}>
-            <Search size={15} style={{
-              position: 'absolute',
-              left: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-              pointerEvents: 'none',
-            }} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search services, stacks, owners..."
-              style={{
-                width: '100%',
-                padding: '9px 12px 9px 36px',
-                borderRadius: 8,
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                color: 'var(--text-primary)',
-                fontSize: 14,
-                outline: 'none',
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-500)'; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Filter size={14} color="var(--text-muted)" />
-            {STATUS_FILTERS.map(({ label, value }) => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 240, maxWidth: 340 }}>
+          <Search size={17} color="#9a9a9a" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search services, stacks, tags…"
+            style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 999, padding: '10px 16px 10px 38px', fontSize: 14, color: '#0A2463' }}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {dynamicFilters.map((f) => {
+            const on = filter === f.value;
+            return (
               <button
-                key={value}
-                onClick={() => setStatusFilter(value)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  border: '1px solid',
-                  borderColor: statusFilter === value ? 'var(--brand-500)' : 'var(--border-default)',
-                  background: statusFilter === value ? 'var(--brand-glow)' : 'transparent',
-                  color: statusFilter === value ? 'var(--brand-400)' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  transition: 'all 150ms',
-                }}
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                style={{ cursor: 'pointer', border: `1px solid ${on ? '#00E87A' : '#EAEAEA'}`, background: on ? '#00E87A18' : '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13, padding: '7px 15px', borderRadius: 999 }}
               >
-                {label}
+                {f.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Results count */}
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          {filtered.length} service{filtered.length !== 1 ? 's' : ''}
-          {search && ` matching "${search}"`}
-        </div>
-
-        {/* Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-          gap: 16,
-        }}>
-          {filtered.map((svc, i) => (
-            <Link
-              key={svc.id}
-              href={`/catalog/${svc.id}`}
-              style={{
-                display: 'block',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 12,
-                padding: 20,
-                textDecoration: 'none',
-                transition: 'all 150ms ease',
-                animation: `fadeIn 200ms ease ${i * 30}ms both`,
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-brand)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-brand)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-default)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+      {loading ? (
+        <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading…</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+          {data?.services.map((s) => (
+            <div
+              key={s.id}
+              onClick={() => router.push(`/catalog/${s.id}`)}
+              style={{ cursor: 'pointer', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 18, transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease' }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 36px -22px rgba(10,36,99,0.34)'; e.currentTarget.style.borderColor = '#00E87A55'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#EAEAEA'; }}
             >
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div>
-                  <h3 style={{
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                    marginBottom: 4,
-                  }}>
-                    {svc.name}
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Avatar initials={svc.owner.avatar} />
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{svc.owner.name}</span>
-                  </div>
-                </div>
-                <StatusBadge status={svc.status} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.statusColor }} />
+                <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 600, fontSize: 16, color: '#0A2463' }}>{s.name}</span>
+                <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.statusColor }}>{s.statusLabel}</span>
               </div>
-
-              {/* Description */}
-              <p style={{
-                fontSize: 13,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-                marginBottom: 12,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>
-                {svc.description}
-              </p>
-
-              {/* Stack tags */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                {svc.stack.map((tag) => (
-                  <StackTag key={tag} tag={tag} />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                {s.tags.map((tag) => (
+                  <span key={tag} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 7, padding: '4px 9px' }}>{tag}</span>
                 ))}
               </div>
-
-              {/* Footer */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingTop: 12,
-                borderTop: '1px solid var(--border-subtle)',
-              }}>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Deployed {svc.lastDeployedBy === 'You' ? 'by you' : `by ${svc.lastDeployedBy.split(' ')[0]}`} · {
-                    svc.lastDeployedAt.includes('T')
-                      ? (() => {
-                          const diff = Date.now() - new Date(svc.lastDeployedAt).getTime();
-                          const h = Math.floor(diff / 3600000);
-                          if (h < 24) return `${h}h ago`;
-                          return `${Math.floor(h / 24)}d ago`;
-                        })()
-                      : svc.lastDeployedAt
-                  }
-                </span>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-muted)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                    <ExternalLink size={11} /> Repo
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-muted)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                    <Zap size={11} /> Run
-                  </span>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 13, borderTop: '1px solid #F2F2F2' }}>
+                <span style={{ width: 20, height: 20, borderRadius: '50%', background: s.ownerColor, color: '#fff', fontSize: 9, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.ownerInitials}</span>
+                <span style={{ fontSize: 12.5, color: '#6B6B6B' }}>{s.ownerName}</span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
+      )}
 
-        {filtered.length === 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 80,
-            color: 'var(--text-muted)',
-            gap: 12,
-          }}>
-            <Search size={32} strokeWidth={1} />
-            <p style={{ fontSize: 14 }}>No services match your search</p>
-          </div>
-        )}
-      </main>
+      {!loading && data?.services.length === 0 && (
+        <div style={{ padding: 60, textAlign: 'center', fontSize: 15, color: '#9a9a9a' }}>No services match your filters.</div>
+      )}
     </div>
   );
 }

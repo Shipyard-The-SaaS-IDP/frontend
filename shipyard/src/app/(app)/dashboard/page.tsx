@@ -1,341 +1,147 @@
 'use client';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import {
-  Server, Zap, Users, Clock, UserPlus, Cloud,
-  Sparkles, CheckCircle2, AlertTriangle, ArrowUpRight,
-  Rocket, Library, Plug,
-} from 'lucide-react';
-import TopBar from '@/components/layout/TopBar';
-import { SERVICES, ACTIVITY_FEED, TEAM_MEMBERS } from '@/lib/mock-data';
-import type { ServiceStatus } from '@/lib/types';
-import { RevealGroup, RevealItem } from '@/components/marketing/Reveal';
-
-function useCountUp(target: number, duration = 1200) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    let start: number | null = null;
-    const step = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / duration, 1);
-      setValue(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration]);
-  return value;
-}
-
-function MetricCard({ label, value, trend, icon: Icon, color }: {
-  label: string;
-  value: number | string;
-  trend?: string;
-  icon: React.ElementType;
-  color: string;
-}) {
-  const numericValue = typeof value === 'number' ? value : 0;
-  const counted = useCountUp(numericValue);
-  const displayed = typeof value === 'number' ? counted : value;
-
-  return (
-    <div style={{
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--border-default)',
-      borderRadius: 12,
-      padding: 20,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-      transition: 'border-color 150ms, box-shadow 150ms',
-      cursor: 'default',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-strong)';
-      e.currentTarget.style.boxShadow = 'var(--shadow-card)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-default)';
-      e.currentTarget.style.boxShadow = 'none';
-    }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span>
-        <div style={{
-          width: 34,
-          height: 34,
-          borderRadius: 8,
-          background: `${color}18`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Icon size={17} color={color} strokeWidth={1.8} />
-        </div>
-      </div>
-      <div>
-        <div style={{
-          fontFamily: 'var(--font-sora)',
-          fontSize: 32,
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          lineHeight: 1,
-          animation: 'fadeInUp 300ms ease both',
-        }}>
-          {displayed}
-        </div>
-        {trend && (
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>{trend}</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StatusDot({ status }: { status: ServiceStatus }) {
-  const colors: Record<ServiceStatus, string> = {
-    healthy: 'var(--status-healthy)',
-    degraded: 'var(--status-degraded)',
-    down: 'var(--status-down)',
-    deploying: 'var(--status-deploying)',
-  };
-  return (
-    <span style={{
-      display: 'inline-block',
-      width: 7,
-      height: 7,
-      borderRadius: '50%',
-      background: colors[status],
-      animation: status === 'deploying' ? 'pulse-dot 1.5s ease-in-out infinite' : undefined,
-    }} />
-  );
-}
-
-function QuickActionButton({ href, icon: Icon, label, color }: {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  color: string;
-}) {
-  return (
-    <Link href={href} style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      padding: '12px 16px',
-      borderRadius: 10,
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--border-default)',
-      textDecoration: 'none',
-      color: 'var(--text-primary)',
-      fontSize: 14,
-      fontWeight: 500,
-      transition: 'all 150ms ease',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-brand)';
-      e.currentTarget.style.boxShadow = 'var(--shadow-brand)';
-      e.currentTarget.style.background = 'var(--bg-hover)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-default)';
-      e.currentTarget.style.boxShadow = 'none';
-      e.currentTarget.style.background = 'var(--bg-surface)';
-    }}
-    >
-      <div style={{
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        background: `${color}18`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        <Icon size={16} color={color} strokeWidth={2} />
-      </div>
-      {label}
-    </Link>
-  );
-}
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { api, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
 
 export default function DashboardPage() {
-  const healthyCount = SERVICES.filter((s) => s.status === 'healthy').length;
-  const degradedCount = SERVICES.filter((s) => s.status === 'degraded').length;
+  const router = useRouter();
+  const [map, setMap] = useState<MapResponse | null>(null);
+  const [services, setServices] = useState<ServicesResponse | null>(null);
+  const [detail, setDetail] = useState<ServiceDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadDetail = useCallback((id: string) => {
+    api.get<ServiceDetail>(`/services/${id}`).then(setDetail);
+  }, []);
+
+  useEffect(() => {
+    Promise.all([
+      api.get<ServicesResponse>('/services'),
+      api.get<MapResponse>('/services/map'),
+    ]).then(([svcRes, mapRes]) => {
+      if (svcRes.total === 0) {
+        router.replace('/onboarding');
+        return;
+      }
+      setServices(svcRes);
+      setMap(mapRes);
+      const first = svcRes.services[0];
+      if (first) loadDetail(first.id);
+      setLoading(false);
+    });
+  }, [router, loadDetail]);
+
+  const selectNode = (nodeName: string) => {
+    const match = services?.services.find((s) => s.name === nodeName);
+    if (match) loadDetail(match.id);
+  };
+
+  if (loading || !map || !services) {
+    return <div style={{ padding: 32, color: '#6B6B6B', fontSize: 14 }}>Loading your service map…</div>;
+  }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="Dashboard" subtitle="Everything you've shipped, in one place." />
+    <div style={{ display: 'flex', height: '100%', minHeight: 'calc(100vh - 64px)' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: '28px 32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 25, letterSpacing: '-0.02em', color: '#0A2463', margin: 0 }}>Service map</h1>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, color: '#00C9A7', background: '#00C9A714', padding: '3px 9px', borderRadius: 6 }}>
+            {services.total} services · auto
+          </span>
+        </div>
+        <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 22px' }}>Live dependency graph, discovered from your code &amp; environments.</p>
 
-      <main style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{
+          position: 'relative', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 18, height: 480, overflow: 'hidden',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #EEEEEE 1px, transparent 0)', backgroundSize: '24px 24px',
+        }}>
+          <div style={{ position: 'absolute', top: 0, bottom: 0, width: 90, background: 'linear-gradient(90deg, transparent, #00E87A18, transparent)', animation: 'dcScan 6s ease-in-out infinite', pointerEvents: 'none' }} />
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 860 480" preserveAspectRatio="none">
+            {map.edges.map((e, i) => (
+              <path key={i} d={e.d} stroke={e.stroke} strokeWidth={1.6} fill="none" opacity={0.5} strokeDasharray="5 7" style={{ animation: 'dash 5s linear infinite' }} />
+            ))}
+          </svg>
+          {map.nodes.map((node) => {
+            const selected = detail?.name === node.name;
+            return (
+              <div
+                key={node.name}
+                onClick={() => selectNode(node.name)}
+                style={{
+                  position: 'absolute', left: node.left, top: node.top, width: node.w, cursor: 'pointer',
+                  background: '#fff', border: `1.5px solid ${selected ? '#00E87A' : '#EAEAEA'}`, borderRadius: 12, padding: '11px 13px',
+                  boxShadow: selected ? '0 14px 30px -10px rgba(0,232,122,0.5)' : '0 6px 16px -10px rgba(10,36,99,0.28)',
+                  animation: `floaty 7s ease-in-out infinite ${node.delay}s`, transition: 'border-color 200ms ease, box-shadow 200ms ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: node.statusColor }} />
+                  <span style={{ fontWeight: 600, fontSize: 13, color: '#0A2463' }}>{node.name}</span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6B6B6B', marginBottom: 8 }}>{node.stackStr}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 17, height: 17, borderRadius: '50%', background: node.ownerColor, color: '#fff', fontSize: 8.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{node.ownerInitials}</span>
+                  <span style={{ fontSize: 10.5, color: '#6B6B6B' }}>{node.ownerName}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Metric Cards */}
-        <RevealGroup style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          <RevealItem><MetricCard label="Services Running" value={10} trend="↑ +2 this month" icon={Server} color="#6366F1" /></RevealItem>
-          <RevealItem><MetricCard label="Automations Run" value={24} trend="↑ this week" icon={Zap} color="#10B981" /></RevealItem>
-          <RevealItem><MetricCard label="Team Members" value={TEAM_MEMBERS.length} icon={Users} color="#F59E0B" /></RevealItem>
-          <RevealItem><MetricCard label="Last Deploy" value="2h ago" icon={Clock} color="#38BDF8" /></RevealItem>
-        </RevealGroup>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
-          {/* Activity Feed */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 12,
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid var(--border-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
-              <h2 style={{ fontFamily: 'var(--font-sora)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Recent Activity
-              </h2>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Last 72 hours</span>
+      {detail && (
+        <div style={{ width: 360, flex: 'none', borderLeft: '1px solid #EAEAEA', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#FAFAFA', borderBottom: '1px solid #EAEAEA', padding: '20px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: detail.statusColor }} />
+              <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 18, color: '#0A2463' }}>{detail.name}</span>
             </div>
-            <div style={{ padding: '8px 0' }}>
-              {ACTIVITY_FEED.map((event, i) => {
-                const ActivityIcon = {
-                  deploy: Rocket,
-                  workflow: CheckCircle2,
-                  team: Users,
-                  alert: AlertTriangle,
-                  integration: Plug,
-                  catalog: Library,
-                }[event.type] ?? Zap;
-                const iconColor = {
-                  deploy: '#818CF8',
-                  workflow: '#10B981',
-                  team: '#38BDF8',
-                  alert: '#F59E0B',
-                  integration: '#6366F1',
-                  catalog: '#94A3B8',
-                }[event.type] ?? '#94A3B8';
-                return (
-                  <div
-                    key={event.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 12,
-                      padding: '10px 20px',
-                      animation: `fadeIn 200ms ease ${i * 40}ms both`,
-                      transition: 'background 100ms',
-                      cursor: 'default',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <div style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: 6,
-                      background: `${iconColor}18`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: 1,
-                    }}>
-                      <ActivityIcon size={13} color={iconColor} strokeWidth={1.8} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>{event.message}</p>
-                    </div>
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{event.relativeTime}</span>
-                  </div>
-                );
-              })}
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: detail.statusColor, background: detail.statusBg, padding: '3px 9px', borderRadius: 6 }}>{detail.statusLabel}</span>
+          </div>
+          <div style={{ padding: '20px 22px' }}>
+            <Row label="Stack" value={detail.stackStr} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F2F2F2' }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a9a9a' }}>Owner</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ width: 18, height: 18, borderRadius: '50%', background: detail.ownerColor, color: '#fff', fontSize: 9, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{detail.ownerInitials}</span>
+                <span style={{ fontSize: 13, color: '#0A2463' }}>{detail.ownerName}</span>
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a9a9a' }}>Depends on</span>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#0A2463', textAlign: 'right', maxWidth: 190 }}>{detail.depsStr}</span>
             </div>
           </div>
-
-          {/* Right Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Quick Actions */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 12,
-              overflow: 'hidden',
-            }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <h2 style={{ fontFamily: 'var(--font-sora)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Quick Actions
-                </h2>
+          <div style={{ padding: '0 22px 22px' }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: 10 }}>Discovery trace</div>
+            <div style={{ background: '#0A2463', borderRadius: 12, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.09)' }}>
+                {['#ff5f57', '#febc2e', '#28c840'].map((c) => <span key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c }} />)}
+                <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10.5, color: '#00E87A' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00E87A', boxShadow: '0 0 8px #00E87A', animation: 'pulse-dot 1.5s ease-in-out infinite' }} />live
+                </span>
               </div>
-              <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <QuickActionButton href="/translator" icon={Sparkles} label="Translate a New Idea" color="#6366F1" />
-                <QuickActionButton href="/workflows/new" icon={Zap} label="Generate a Workflow" color="#10B981" />
-                <QuickActionButton href="/workflows/spin-up-environment" icon={Cloud} label="New Environment" color="#F59E0B" />
-                <QuickActionButton href="/workflows/developer-onboarding" icon={UserPlus} label="Add a Teammate" color="#38BDF8" />
-              </div>
-            </div>
-
-            {/* Health Overview */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 12,
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                padding: '16px 20px',
-                borderBottom: '1px solid var(--border-subtle)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <h2 style={{ fontFamily: 'var(--font-sora)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Service Health
-                </h2>
-                <Link href="/catalog" style={{ fontSize: 12, color: 'var(--brand-400)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
-                  View all <ArrowUpRight size={11} />
-                </Link>
-              </div>
-              <div style={{ padding: '8px 0' }}>
-                <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <CheckCircle2 size={14} color="var(--status-healthy)" />
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Healthy</span>
+              <div style={{ padding: '14px 16px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, lineHeight: 1.9 }}>
+                {detail.trace.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'baseline', color: t.color }}>
+                    <span style={{ flex: 'none', width: 11, color: t.iconColor }}>{t.icon}</span>
+                    <span style={{ whiteSpace: 'pre-wrap' }}>{t.text}</span>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{healthyCount}</span>
-                </div>
-                <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <AlertTriangle size={14} color="var(--status-degraded)" />
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Degraded</span>
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{degradedCount}</span>
-                </div>
-                <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 16px' }} />
-                {SERVICES.map((svc) => (
-                  <Link
-                    key={svc.id}
-                    href={`/catalog/${svc.id}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '7px 16px',
-                      textDecoration: 'none',
-                      transition: 'background 100ms',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-jetbrains-mono)' }}>{svc.name}</span>
-                    <StatusDot status={svc.status} />
-                  </Link>
                 ))}
               </div>
             </div>
           </div>
         </div>
-      </main>
+      )}
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F2F2F2' }}>
+      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a9a9a' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12.5, color: '#0A2463' }}>{value}</span>
     </div>
   );
 }
