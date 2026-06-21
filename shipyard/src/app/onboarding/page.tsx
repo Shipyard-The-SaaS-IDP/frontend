@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation';
 import { Search, Check, ArrowRight } from 'lucide-react';
 import OnboardingHeader from '@/components/onboarding/OnboardingHeader';
 import { BrandIcon } from '@/components/integrations/brand-icons';
-import { api, type ConnectorsResponse } from '@/lib/api';
+import { api, getGithubConnectUrl, type ConnectorsResponse } from '@/lib/api';
+
+// Connectors with a real OAuth flow — rendered as a navigation link instead
+// of a toggle button. Everything else is still a simulated toggle for now.
+const OAUTH_CONNECTOR_IDS = new Set(['github']);
 
 export default function OnboardingConnectPage() {
   const router = useRouter();
@@ -89,19 +93,33 @@ export default function OnboardingConnectPage() {
                     <span style={{ display: 'flex', width: 26, height: 26, alignItems: 'center', justifyContent: 'center' }}><BrandIcon id={c.id} /></span>
                     <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 600, fontSize: 15, color: '#0A2463' }}>{c.name}</span>
                   </div>
-                  <button
-                    onClick={() => toggle(c.id)}
-                    disabled={toggling === c.id}
-                    style={{
-                      cursor: 'pointer', border: `1px solid ${c.connected ? '#00E87A' : '#EAEAEA'}`,
-                      background: c.connected ? '#00E87A18' : '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13.5,
-                      padding: '8px 0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      opacity: toggling === c.id ? 0.6 : 1,
-                    }}
-                  >
-                    {c.connected && <Check size={14} strokeWidth={2.6} />}
-                    {c.connected ? 'Connected' : 'Connect'}
-                  </button>
+                  {OAUTH_CONNECTOR_IDS.has(c.id) && !c.connected ? (
+                    <a
+                      href={getGithubConnectUrl('/onboarding')}
+                      style={{
+                        cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600,
+                        fontSize: 13.5, padding: '8px 0', borderRadius: 10, display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', gap: 6, textDecoration: 'none',
+                      }}
+                    >
+                      Connect
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => toggle(c.id)}
+                      disabled={toggling === c.id || OAUTH_CONNECTOR_IDS.has(c.id)}
+                      style={{
+                        cursor: OAUTH_CONNECTOR_IDS.has(c.id) ? 'default' : 'pointer',
+                        border: `1px solid ${c.connected ? '#00E87A' : '#EAEAEA'}`,
+                        background: c.connected ? '#00E87A18' : '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13.5,
+                        padding: '8px 0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        opacity: toggling === c.id ? 0.6 : 1,
+                      }}
+                    >
+                      {c.connected && <Check size={14} strokeWidth={2.6} />}
+                      {c.connected ? 'Connected' : 'Connect'}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
