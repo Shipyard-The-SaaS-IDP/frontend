@@ -1,21 +1,84 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock, X } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
 import { COMING_SOON } from '@/components/integrations/coming-soon';
-import { api, ApiError, getGithubConnectUrl, getSlackConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
+import { api, ApiError, getGithubConnectUrl, getGsuiteConnectUrl, getSlackConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
 
 // Connectors with a real OAuth flow — rendered as a navigation link instead
 // of a toggle button. Everything else is still a simulated toggle for now.
 const OAUTH_CONNECT_URLS: Record<string, (next: string) => string> = {
   github: getGithubConnectUrl,
   slack: getSlackConnectUrl,
+  gsuite: getGsuiteConnectUrl,
 };
 
+// Not OAuth — connecting means uploading a credential file/key directly.
+const KEY_UPLOAD_CONNECTOR_IDS = new Set(['gcp']);
+
+function GcpConnectModal({ onClose, onConnected }: { onClose: () => void; onConnected: () => void }) {
+  const [keyText, setKeyText] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+
+  const submit = async () => {
+    setError(null);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(keyText);
+    } catch {
+      setError('Not valid JSON — paste the full service account key file contents.');
+      return;
+    }
+    setConnecting(true);
+    try {
+      await api.post('/connectors/gcp/connect', { serviceAccountKey: parsed });
+      onConnected();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not connect with this key.');
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,36,99,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 480, maxWidth: '90vw' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <h2 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 17, color: '#0A2463', margin: 0 }}>Connect Google Cloud</h2>
+          <button onClick={onClose} style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#9a9a9a' }}><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 12.5, color: '#6B6B6B', margin: '0 0 14px' }}>
+          Paste the contents of a service account key JSON file (GCP Console → IAM &amp; Admin → Service Accounts → Keys → Add Key).
+          Read-only Cloud Run access is enough.
+        </p>
+        <textarea
+          value={keyText}
+          onChange={(e) => setKeyText(e.target.value)}
+          placeholder='{"type": "service_account", "project_id": "...", ...}'
+          rows={8}
+          style={{ width: '100%', border: '1px solid #EAEAEA', borderRadius: 10, padding: 10, fontSize: 12, fontFamily: 'var(--font-jetbrains-mono)', resize: 'vertical', marginBottom: 10 }}
+        />
+        {error && <p style={{ color: '#ff5f57', fontSize: 12.5, margin: '0 0 10px' }}>{error}</p>}
+        <button
+          onClick={submit}
+          disabled={!keyText.trim() || connecting}
+          style={{
+            width: '100%', cursor: connecting ? 'default' : 'pointer', border: 'none', background: '#00E87A', color: '#0A2463',
+            fontWeight: 700, fontSize: 14, padding: '11px 0', borderRadius: 10, opacity: !keyText.trim() || connecting ? 0.6 : 1,
+          }}
+        >
+          {connecting ? 'Connecting…' : 'Connect'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ConnectorRow({
-  c, toggling, onToggle, onOpen, isLast,
-}: { c: ConnectorItem; toggling: string | null; onToggle: (id: string) => void; onOpen: (id: string) => void; isLast: boolean }) {
+  c, toggling, onToggle, onOpen, onOpenKeyUpload, isLast,
+}: { c: ConnectorItem; toggling: string | null; onToggle: (id: string) => void; onOpen: (id: string) => void; onOpenKeyUpload: (id: string) => void; isLast: boolean }) {
   return (
     <div
       onClick={() => c.connected && onOpen(c.id)}
@@ -30,6 +93,13 @@ function ConnectorRow({
       </div>
       {c.connected ? (
         <ArrowRight size={16} color="#9a9a9a" />
+      ) : KEY_UPLOAD_CONNECTOR_IDS.has(c.id) ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenKeyUpload(c.id); }}
+          style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13, padding: '7px 16px', borderRadius: 9 }}
+        >
+          Connect
+        </button>
       ) : OAUTH_CONNECT_URLS[c.id] ? (
         <a
           href={OAUTH_CONNECT_URLS[c.id]('/integrations')}
@@ -60,6 +130,9 @@ export default function IntegrationsPage() {
   const [data, setData] = useState<ConnectorsResponse | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [keyUploadFor, setKeyUploadFor] = useState<string | null>(null);
+
+  const refetch = () => api.get<ConnectorsResponse>('/connectors').then(setData);
 
   useEffect(() => {
     api.get<ConnectorsResponse>('/connectors')
@@ -104,7 +177,7 @@ export default function IntegrationsPage() {
             ) : (
               <div style={{ background: '#fff', border: '1px solid #EAEAEA', borderRadius: 14, overflow: 'hidden' }}>
                 {connected.map((c, i) => (
-                  <ConnectorRow key={c.id} c={c} toggling={toggling} onToggle={toggle} onOpen={(id) => router.push(`/integrations/${id}`)} isLast={i === connected.length - 1} />
+                  <ConnectorRow key={c.id} c={c} toggling={toggling} onToggle={toggle} onOpen={(id) => router.push(`/integrations/${id}`)} onOpenKeyUpload={setKeyUploadFor} isLast={i === connected.length - 1} />
                 ))}
               </div>
             )}
@@ -116,7 +189,7 @@ export default function IntegrationsPage() {
             </div>
             <div style={{ background: '#fff', border: '1px solid #EAEAEA', borderRadius: 14, overflow: 'hidden' }}>
               {discoverable.map((c, i) => (
-                <ConnectorRow key={c.id} c={c} toggling={toggling} onToggle={toggle} onOpen={(id) => router.push(`/integrations/${id}`)} isLast={i === discoverable.length - 1} />
+                <ConnectorRow key={c.id} c={c} toggling={toggling} onToggle={toggle} onOpen={(id) => router.push(`/integrations/${id}`)} onOpenKeyUpload={setKeyUploadFor} isLast={i === discoverable.length - 1} />
               ))}
             </div>
           </section>
@@ -140,6 +213,13 @@ export default function IntegrationsPage() {
             </div>
           </section>
         </>
+      )}
+
+      {keyUploadFor === 'gcp' && (
+        <GcpConnectModal
+          onClose={() => setKeyUploadFor(null)}
+          onConnected={() => { setKeyUploadFor(null); refetch(); }}
+        />
       )}
     </div>
   );

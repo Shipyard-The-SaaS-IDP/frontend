@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock } from 'lucide-react';
+import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock, Calendar, Cloud } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
-import { api, ApiError, type ConnectorsResponse, type ConnectorItem, type GithubReposResponse } from '@/lib/api';
+import { api, ApiError, type ConnectorsResponse, type ConnectorItem, type GithubReposResponse, type GsuiteEventsResponse, type GcpServicesResponse } from '@/lib/api';
 
 function GithubDeepDive({ connectorName }: { connectorName: string }) {
   const [data, setData] = useState<GithubReposResponse | null>(null);
@@ -49,6 +49,90 @@ function GithubDeepDive({ connectorName }: { connectorName: string }) {
           </a>
         ))}
         {data.repos.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No repositories found.</p>}
+      </div>
+    </div>
+  );
+}
+
+function GsuiteDeepDive({ connectorName }: { connectorName: string }) {
+  const [data, setData] = useState<GsuiteEventsResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<GsuiteEventsResponse>('/connectors/gsuite/events')
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load Calendar data.'));
+  }, []);
+
+  if (error) return <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>;
+  if (!data) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>Next {data.events.length} upcoming events on your primary calendar</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.events.map((e, i) => (
+          <a
+            key={i}
+            href={e.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px', textDecoration: 'none', transition: 'border-color 150ms ease' }}
+            onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = '#00E87A55'; }}
+            onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = '#EAEAEA'; }}
+          >
+            <Calendar size={14} color="#9a9a9a" />
+            <span style={{ fontWeight: 600, fontSize: 14, color: '#0A2463' }}>{e.title}</span>
+            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9a9a9a' }}>{new Date(e.start).toLocaleString()}</span>
+          </a>
+        ))}
+        {data.events.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No upcoming events found.</p>}
+      </div>
+    </div>
+  );
+}
+
+function GcpDeepDive({ connectorName }: { connectorName: string }) {
+  const [data, setData] = useState<GcpServicesResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<GcpServicesResponse>('/connectors/gcp/services')
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load GCP data.'));
+  }, []);
+
+  if (error) return <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>;
+  if (!data) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>
+        Project <strong style={{ color: '#0A2463' }}>{data.projectId}</strong> · {data.services.length} Cloud Run services
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.services.map((s) => (
+          <a
+            key={s.name}
+            href={s.uri || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'block', border: '1px solid #EAEAEA', borderRadius: 12, padding: '14px 16px', textDecoration: 'none', transition: 'border-color 150ms ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00E87A55'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EAEAEA'; }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <Cloud size={13} color="#9a9a9a" />
+              <span style={{ fontWeight: 600, fontSize: 14.5, color: '#0A2463' }}>{s.name}</span>
+              <ExternalLink size={12} color="#9a9a9a" style={{ marginLeft: 'auto' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: '#9a9a9a' }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>{s.region}</span>
+              {s.updateTime && <span>Updated {new Date(s.updateTime).toLocaleDateString()}</span>}
+            </div>
+          </a>
+        ))}
+        {data.services.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No Cloud Run services found in this project.</p>}
       </div>
     </div>
   );
@@ -113,7 +197,10 @@ export default function ConnectorDetailPage({ params }: { params: Promise<{ conn
       <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 28px' }}>{connector.category}</p>
 
       {connector.connected ? (
-        connector.id === 'github' ? <GithubDeepDive connectorName={connector.name} /> : <GenericConnectedPlaceholder name={connector.name} />
+        connector.id === 'github' ? <GithubDeepDive connectorName={connector.name} />
+        : connector.id === 'gsuite' ? <GsuiteDeepDive connectorName={connector.name} />
+        : connector.id === 'gcp' ? <GcpDeepDive connectorName={connector.name} />
+        : <GenericConnectedPlaceholder name={connector.name} />
       ) : (
         <div style={{ border: '1px dashed #EAEAEA', borderRadius: 14, padding: '40px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: 14, color: '#6B6B6B', margin: '0 0 16px' }}>Connect {connector.name} to see live data here.</p>

@@ -33,6 +33,10 @@ export function getSlackConnectUrl(nextPath: string): string {
   return getOAuthConnectUrl('slack', nextPath);
 }
 
+export function getGsuiteConnectUrl(nextPath: string): string {
+  return getOAuthConnectUrl('gsuite', nextPath);
+}
+
 /**
  * Client-side fetch against the FastAPI backend (a different origin than the
  * frontend, so the shipyard_token cookie can't travel automatically — send it
@@ -114,6 +118,25 @@ export interface GithubRepo {
 export interface GithubReposResponse {
   login: string;
   repos: GithubRepo[];
+}
+export interface GsuiteEvent {
+  title: string;
+  start: string;
+  url: string;
+}
+export interface GsuiteEventsResponse {
+  events: GsuiteEvent[];
+}
+export interface GcpService {
+  name: string;
+  uri: string;
+  region: string;
+  lastModifier: string;
+  updateTime: string;
+}
+export interface GcpServicesResponse {
+  projectId: string;
+  services: GcpService[];
 }
 
 export interface ConnectorsResponse {
