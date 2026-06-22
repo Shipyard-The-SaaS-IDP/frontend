@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="en"
       className={`${sora.variable} ${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex">{children}</body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

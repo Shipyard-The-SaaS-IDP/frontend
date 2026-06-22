@@ -1,6 +1,7 @@
 'use client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { DiscoveryTerminal } from '@/components/marketing/Previews';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
@@ -31,6 +32,34 @@ function GoogleIcon() {
   );
 }
 
+const VALUE_PROPS = [
+  'Auto-discovers every service, owner, and dependency',
+  'No YAML, no manual setup — read-only access in two clicks',
+  'Plain-English service creation, real infra underneath',
+];
+
+function BrandPanel() {
+  return (
+    <div style={{ flex: 1, background: '#0A2463', padding: '56px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: -100, right: -80, width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, #1E5FCC55, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto', width: '100%' }}>
+        <h2 style={{ fontFamily: 'var(--font-sora)', fontWeight: 800, fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.025em', color: '#fff', margin: '0 0 16px' }}>
+          Your stack, mapped <span style={{ color: '#00E87A' }}>in five minutes.</span>
+        </h2>
+        <ul style={{ listStyle: 'none', margin: '0 0 32px', padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {VALUE_PROPS.map((v) => (
+            <li key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14.5, lineHeight: 1.5, color: 'rgba(255,255,255,0.75)' }}>
+              <span style={{ marginTop: 6, width: 5, height: 5, borderRadius: '50%', background: '#00E87A', flexShrink: 0 }} />
+              {v}
+            </li>
+          ))}
+        </ul>
+        <DiscoveryTerminal />
+      </div>
+    </div>
+  );
+}
+
 function SignupInner() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
@@ -39,71 +68,77 @@ function SignupInner() {
   const isLogin = mode === 'login';
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', background: '#fff' }}>
-      <div style={{ width: '100%', maxWidth: 400, animation: 'fadeSwap .4s ease' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
-          <a href="/" style={{ marginBottom: 18 }}><ShipyardMark /></a>
-          <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 800, fontSize: 27, letterSpacing: '-0.02em', color: '#0A2463', margin: '0 0 6px', textAlign: 'center' }}>
-            {isLogin ? 'Welcome back' : 'Create your account'}
-          </h1>
-          <p style={{ fontSize: 15, color: '#6B6B6B', margin: 0, textAlign: 'center' }}>
-            {isLogin ? 'Log in to your Shipyard workspace.' : 'Map your stack in five minutes.'}
+    <div style={{ minHeight: '100vh', display: 'flex', width: '100%' }}>
+      <div style={{ flex: '0 0 480px', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', background: '#fff' }}>
+        <div style={{ width: '100%', maxWidth: 380, animation: 'fadeSwap .4s ease' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
+            <a href="/" style={{ marginBottom: 18 }}><ShipyardMark /></a>
+            <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 800, fontSize: 27, letterSpacing: '-0.02em', color: '#0A2463', margin: '0 0 6px', textAlign: 'center' }}>
+              {isLogin ? 'Welcome back' : 'Create your account'}
+            </h1>
+            <p style={{ fontSize: 15, color: '#6B6B6B', margin: 0, textAlign: 'center' }}>
+              {isLogin ? 'Log in to your Shipyard workspace.' : 'Map your stack in five minutes.'}
+            </p>
+          </div>
+
+          {errorMsg && (
+            <div style={{ marginBottom: 18, borderRadius: 12, border: '1px solid rgba(255,95,87,0.3)', background: 'rgba(255,95,87,0.08)', padding: '12px 14px', fontSize: 13, color: '#c0392b' }}>
+              {errorMsg}
+            </div>
+          )}
+
+          <div style={{ position: 'relative', display: 'flex', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: 4, marginBottom: 22 }}>
+            <span style={{
+              position: 'absolute', top: 4, left: 4, bottom: 4, width: 'calc(50% - 4px)', background: '#fff', border: '1px solid #EAEAEA',
+              borderRadius: 9, boxShadow: '0 1px 3px rgba(10,36,99,0.06)', transition: 'transform .3s cubic-bezier(.65,.05,.36,1)',
+              transform: isLogin ? 'translateX(100%)' : 'translateX(0%)',
+            }} />
+            <button onClick={() => setMode('signup')} style={{ position: 'relative', zIndex: 1, flex: 1, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#0A2463', padding: '9px 0', borderRadius: 9 }}>Sign up</button>
+            <button onClick={() => setMode('login')} style={{ position: 'relative', zIndex: 1, flex: 1, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#0A2463', padding: '9px 0', borderRadius: 9 }}>Log in</button>
+          </div>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); window.location.href = `${API_URL}/auth/google`; }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 13, marginBottom: 18 }}
+          >
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="email">Work email</label>
+              <input id="email" type="email" required placeholder="you@company.com" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="password">Password</label>
+              <input id="password" type="password" required placeholder="••••••••••" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
+            </div>
+            <button
+              type="submit"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', border: 'none', background: '#00E87A', color: '#0A2463', fontWeight: 700, fontSize: 15.5, padding: 13, borderRadius: 12, boxShadow: '0 2px 6px rgba(0,232,122,0.25)' }}
+            >
+              {isLogin ? 'Log in' : 'Create account'}
+            </button>
+          </form>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0' }}>
+            <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
+            <span style={{ fontSize: 12, color: '#9a9a9a' }}>or</span>
+            <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
+          </div>
+
+          <a
+            href={`${API_URL}/auth/google`}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 15, padding: 12, borderRadius: 12, border: '1px solid #EAEAEA', textDecoration: 'none' }}
+          >
+            <GoogleIcon />
+            Continue with Google
+          </a>
+
+          <p style={{ textAlign: 'center', fontSize: 12.5, color: '#9a9a9a', margin: '22px 0 0', lineHeight: 1.5 }}>
+            By continuing you agree to Shipyard&apos;s<br />Terms of Service and Privacy Policy.
           </p>
         </div>
+      </div>
 
-        {errorMsg && (
-          <div style={{ marginBottom: 18, borderRadius: 12, border: '1px solid rgba(255,95,87,0.3)', background: 'rgba(255,95,87,0.08)', padding: '12px 14px', fontSize: 13, color: '#c0392b' }}>
-            {errorMsg}
-          </div>
-        )}
-
-        <div style={{ position: 'relative', display: 'flex', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: 4, marginBottom: 22 }}>
-          <span style={{
-            position: 'absolute', top: 4, left: 4, bottom: 4, width: 'calc(50% - 4px)', background: '#fff', border: '1px solid #EAEAEA',
-            borderRadius: 9, boxShadow: '0 1px 3px rgba(10,36,99,0.06)', transition: 'transform .3s cubic-bezier(.65,.05,.36,1)',
-            transform: isLogin ? 'translateX(100%)' : 'translateX(0%)',
-          }} />
-          <button onClick={() => setMode('signup')} style={{ position: 'relative', zIndex: 1, flex: 1, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#0A2463', padding: '9px 0', borderRadius: 9 }}>Sign up</button>
-          <button onClick={() => setMode('login')} style={{ position: 'relative', zIndex: 1, flex: 1, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#0A2463', padding: '9px 0', borderRadius: 9 }}>Log in</button>
-        </div>
-
-        <form
-          onSubmit={(e) => { e.preventDefault(); window.location.href = `${API_URL}/auth/google`; }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 13, marginBottom: 18 }}
-        >
-          <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="email">Work email</label>
-            <input id="email" type="email" required placeholder="you@company.com" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="password">Password</label>
-            <input id="password" type="password" required placeholder="••••••••••" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
-          </div>
-          <button
-            type="submit"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', border: 'none', background: '#00E87A', color: '#0A2463', fontWeight: 700, fontSize: 15.5, padding: 13, borderRadius: 12, boxShadow: '0 2px 6px rgba(0,232,122,0.25)' }}
-          >
-            {isLogin ? 'Log in' : 'Create account'}
-          </button>
-        </form>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0' }}>
-          <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
-          <span style={{ fontSize: 12, color: '#9a9a9a' }}>or</span>
-          <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
-        </div>
-
-        <a
-          href={`${API_URL}/auth/google`}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 15, padding: 12, borderRadius: 12, border: '1px solid #EAEAEA', textDecoration: 'none' }}
-        >
-          <GoogleIcon />
-          Continue with Google
-        </a>
-
-        <p style={{ textAlign: 'center', fontSize: 12.5, color: '#9a9a9a', margin: '22px 0 0', lineHeight: 1.5 }}>
-          By continuing you agree to Shipyard&apos;s<br />Terms of Service and Privacy Policy.
-        </p>
+      <div className="hidden lg:flex" style={{ flex: 1 }}>
+        <BrandPanel />
       </div>
     </div>
   );
