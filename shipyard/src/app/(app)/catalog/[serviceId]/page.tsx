@@ -31,7 +31,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ servic
 
   const linkTag = detail.tags.find((t) => t.startsWith('link:'));
   const sourceUrl = linkTag ? linkTag.slice(5) : null;
-  const visibleTags = detail.tags.filter((t) => !t.startsWith('link:'));
+  const visibleTags = detail.tags.filter((t) => !t.startsWith('link:') && !t.startsWith('shipyard:'));
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 760 }}>

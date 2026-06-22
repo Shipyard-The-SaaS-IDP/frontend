@@ -58,10 +58,6 @@ export default function CatalogPage() {
       api.get<ServicesResponse>(`/services?${params.toString()}`),
       api.get<MapResponse>('/services/map'),
     ]).then(([svcRes, mapRes]) => {
-      if (svcRes.total === 0 && !query && filter === 'all') {
-        router.replace('/onboarding');
-        return;
-      }
       setServices(svcRes);
       setMap(mapRes);
       if (!detail) {
@@ -95,7 +91,7 @@ export default function CatalogPage() {
 
   const dynamicFilters = useMemo(() => {
     const tags = new Set<string>();
-    services?.services.forEach((s) => s.tags.forEach((t) => { if (!t.startsWith('link:')) tags.add(t); }));
+    services?.services.forEach((s) => s.tags.forEach((t) => { if (!t.startsWith('link:') && !t.startsWith('shipyard:')) tags.add(t); }));
     return [...FILTERS, ...[...tags].slice(0, 3).map((t) => ({ label: t, value: t }))];
   }, [services]);
 
@@ -185,7 +181,7 @@ export default function CatalogPage() {
               {services?.services.map((s) => {
                 const linkTag = s.tags.find((t) => t.startsWith('link:'));
                 const sourceUrl = linkTag ? linkTag.slice(5) : null;
-                const visibleTags = s.tags.filter((t) => !t.startsWith('link:'));
+                const visibleTags = s.tags.filter((t) => !t.startsWith('link:') && !t.startsWith('shipyard:'));
                 return (
                   <div
                     key={s.id}
@@ -225,7 +221,21 @@ export default function CatalogPage() {
             </div>
 
             {services?.services.length === 0 && (
-              <div style={{ padding: 60, textAlign: 'center', fontSize: 15, color: '#9a9a9a' }}>No services match your filters.</div>
+              services.total === 0 && !query && filter === 'all' ? (
+                <div style={{ border: '1px dashed #EAEAEA', borderRadius: 14, padding: '50px 24px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 15, color: '#6B6B6B', margin: '0 0 16px' }}>No services in your catalog yet.</p>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                    <button onClick={() => router.push('/onboarding')} style={{ cursor: 'pointer', border: 'none', background: '#00E87A', color: '#0A2463', fontWeight: 700, fontSize: 13.5, padding: '9px 18px', borderRadius: 10 }}>
+                      Run onboarding
+                    </button>
+                    <button onClick={() => router.push('/integrations')} style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13.5, padding: '9px 18px', borderRadius: 10 }}>
+                      Connect a code host
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: 60, textAlign: 'center', fontSize: 15, color: '#9a9a9a' }}>No services match your filters.</div>
+              )
             )}
           </>
         ) : (

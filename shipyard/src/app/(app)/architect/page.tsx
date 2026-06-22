@@ -119,7 +119,13 @@ function PlanCard({ message, onApprove, onDeny }: { message: Message; onApprove:
 function ArchitectInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [sessionId] = useState(() => searchParams.get('session') || (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36)));
+  const urlSessionId = searchParams.get('session');
+  // Stable fallback id for a brand-new (no ?session=) chat — created once
+  // and reused across re-renders, but NOT tied to the URL, so switching to
+  // a different ?session=X via client-side nav (no remount) doesn't get
+  // stuck on this value.
+  const freshSessionIdRef = useRef<string>(typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36));
+  const sessionId = urlSessionId || freshSessionIdRef.current;
   const [mode, setMode] = useState<'ask' | 'build'>('build');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -133,20 +139,31 @@ function ArchitectInner() {
   }, [messages]);
 
   // Resuming a previous chat from the sidebar — hydrate the transcript.
+  // Keyed on urlSessionId (not the frozen old sessionId state) so this
+  // actually re-runs when the user clicks a different chat in the
+  // sidebar — Next's client-side nav doesn't remount this component for a
+  // same-route query-param change, so a mount-only effect never re-fired.
   // Historical plan cards render as a static note rather than an
   // interactive approve/deny card: the underlying request may already be
   // resolved by the time you're looking back at it.
   useEffect(() => {
-    if (!searchParams.get('session')) { setHistoryLoaded(true); return; }
-    api.get<SessionResponse>(`/architect/sessions/${sessionId}`).then((res) => {
+    if (!urlSessionId) {
+      // "New chat" — mint a fresh id so this doesn't reuse whatever
+      // session was last active before navigating here with no ?session=.
+      freshSessionIdRef.current = typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36);
+      setMessages([]);
+      setHistoryLoaded(true);
+      return;
+    }
+    setHistoryLoaded(false);
+    api.get<SessionResponse>(`/architect/sessions/${urlSessionId}`).then((res) => {
       setMessages(res.messages.map((m) => ({
         id: crypto.randomUUID(),
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.content || (m.toolCalls.find((t) => t.name === 'propose_plan') ? '(proposed a plan)' : ''),
       })));
     }).finally(() => setHistoryLoaded(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [urlSessionId]);
 
   const sendMessage = useCallback(async (text: string, modeOverride?: 'ask' | 'build') => {
     if (!text.trim() || sending) return;
@@ -156,7 +173,7 @@ function ArchitectInner() {
     setError(null);
     setInput('');
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text }]);
-    if (!searchParams.get('session')) {
+    if (!urlSessionId) {
       const params = new URLSearchParams(searchParams.toString());
       params.set('session', sessionId);
       params.delete('prompt');
@@ -175,7 +192,7 @@ function ArchitectInner() {
     } finally {
       setSending(false);
     }
-  }, [sessionId, sending, mode, searchParams, router]);
+  }, [sessionId, urlSessionId, sending, mode, searchParams, router]);
 
   useEffect(() => {
     const incoming = searchParams.get('prompt');
@@ -199,7 +216,7 @@ function ArchitectInner() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 'calc(100vh - 64px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 140px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           {historyLoaded && messages.length === 0 && (

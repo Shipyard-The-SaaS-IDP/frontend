@@ -97,32 +97,6 @@ function SignupInner() {
             <button onClick={() => setMode('login')} style={{ position: 'relative', zIndex: 1, flex: 1, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#0A2463', padding: '9px 0', borderRadius: 9 }}>Log in</button>
           </div>
 
-          <form
-            onSubmit={(e) => { e.preventDefault(); window.location.href = `${API_URL}/auth/google`; }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 13, marginBottom: 18 }}
-          >
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="email">Work email</label>
-              <input id="email" type="email" required placeholder="you@company.com" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#0A2463', marginBottom: 6 }} htmlFor="password">Password</label>
-              <input id="password" type="password" required placeholder="••••••••••" style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: '#0A2463' }} />
-            </div>
-            <button
-              type="submit"
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', border: 'none', background: '#00E87A', color: '#0A2463', fontWeight: 700, fontSize: 15.5, padding: 13, borderRadius: 12, boxShadow: '0 2px 6px rgba(0,232,122,0.25)' }}
-            >
-              {isLogin ? 'Log in' : 'Create account'}
-            </button>
-          </form>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0' }}>
-            <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
-            <span style={{ fontSize: 12, color: '#9a9a9a' }}>or</span>
-            <span style={{ flex: 1, height: 1, background: '#EAEAEA' }} />
-          </div>
-
           <a
             href={`${API_URL}/auth/google`}
             style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 15, padding: 12, borderRadius: 12, border: '1px solid #EAEAEA', textDecoration: 'none' }}
