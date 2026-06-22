@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, LayoutGrid, GitBranch } from 'lucide-react';
+import { Search, LayoutGrid, GitBranch, RefreshCw } from 'lucide-react';
 import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
 
 const FILTERS = [
@@ -20,10 +20,28 @@ export default function CatalogPage() {
   const [detail, setDetail] = useState<ServiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rediscovering, setRediscovering] = useState(false);
 
   const loadDetail = useCallback((id: string) => {
     api.get<ServiceDetail>(`/services/${id}`).then(setDetail);
   }, []);
+
+  const rerunDiscovery = async () => {
+    setRediscovering(true);
+    try {
+      await api.post('/onboarding/discover?force=true');
+      const [svcRes, mapRes] = await Promise.all([
+        api.get<ServicesResponse>('/services'),
+        api.get<MapResponse>('/services/map'),
+      ]);
+      setServices(svcRes);
+      setMap(mapRes);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not re-run discovery.');
+    } finally {
+      setRediscovering(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +91,19 @@ export default function CatalogPage() {
           <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, color: '#00C9A7', background: '#00C9A714', padding: '3px 9px', borderRadius: 6 }}>
             {services?.total ?? 0} services · auto
           </span>
-          <div style={{ marginLeft: 'auto', display: 'flex', border: '1px solid #EAEAEA', borderRadius: 10, padding: 3, background: '#FAFAFA' }}>
+          <button
+            onClick={rerunDiscovery}
+            disabled={rediscovering}
+            style={{
+              marginLeft: 'auto', cursor: rediscovering ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+              border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 12.5,
+              padding: '7px 13px', borderRadius: 9, opacity: rediscovering ? 0.6 : 1,
+            }}
+          >
+            <RefreshCw size={13} style={rediscovering ? { animation: 'spin 1s linear infinite' } : undefined} />
+            {rediscovering ? 'Re-running discovery…' : 'Re-run discovery'}
+          </button>
+          <div style={{ display: 'flex', border: '1px solid #EAEAEA', borderRadius: 10, padding: 3, background: '#FAFAFA' }}>
             {([['list', LayoutGrid, 'List'], ['map', GitBranch, 'Map']] as const).map(([v, Icon, label]) => (
               <button
                 key={v}

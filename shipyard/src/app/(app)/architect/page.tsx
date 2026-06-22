@@ -52,9 +52,10 @@ function IacFilesPanel({ files }: { files: IacFile[] }) {
 }
 
 const EXAMPLE_PROMPTS = [
-  'A Go service that reads the orders queue and writes enriched events to a new Postgres table.',
-  'A Python cron worker that aggregates daily usage into Snowflake.',
-  'A TypeScript edge function behind the api-gateway for feature flags.',
+  { label: 'Build something new', text: 'A Go service that reads the orders queue and writes enriched events to a new Postgres table.' },
+  { label: 'Build something new', text: 'A Python cron worker that aggregates daily usage into Snowflake.' },
+  { label: 'Ask about your catalog', text: 'What stack is payments-service running on, and what depends on it?' },
+  { label: 'Ask about your catalog', text: 'Do I already have a Postgres database I could reuse for a new feature?' },
 ];
 
 function PlanCard({ message, onApprove, onDeny }: { message: Message; onApprove: () => void; onDeny: () => void }) {
@@ -179,17 +180,22 @@ function ArchitectInner() {
                 <Sparkles size={20} color="#0A2463" strokeWidth={1.8} />
               </div>
               <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 23, color: '#0A2463', margin: '0 0 8px' }}>AI Architect</h1>
-              <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 24px', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
-                Describe what you need in plain English. I&apos;ll check your existing catalog, ask if anything&apos;s unclear, and propose a plan for you to approve.
+              <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 24px', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
+                Two things I can do: <strong style={{ color: '#0A2463' }}>build</strong> new infrastructure from a plain-English
+                description (I&apos;ll check your catalog, ask if anything&apos;s unclear, and propose a plan for you to approve),
+                or <strong style={{ color: '#0A2463' }}>answer questions</strong> about services you already have.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
                 {EXAMPLE_PROMPTS.map((p) => (
                   <button
-                    key={p}
-                    onClick={() => sendMessage(p)}
-                    style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#6B6B6B', fontSize: 12.5, padding: '8px 14px', borderRadius: 999, maxWidth: 480 }}
+                    key={p.text}
+                    onClick={() => sendMessage(p.text)}
+                    style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#6B6B6B', fontSize: 12.5, padding: '8px 14px', borderRadius: 999, maxWidth: 480, display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left' }}
                   >
-                    {p}
+                    <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#0BA45E', background: '#00E87A14', padding: '2px 7px', borderRadius: 5 }}>
+                      {p.label}
+                    </span>
+                    {p.text}
                   </button>
                 ))}
               </div>
