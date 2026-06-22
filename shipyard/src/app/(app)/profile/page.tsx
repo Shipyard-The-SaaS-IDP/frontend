@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Users } from 'lucide-react';
-import { api, ApiError, getCurrentUser, logout, type AuthUser, type ConnectorsResponse } from '@/lib/api';
+import { LogOut, Users, Copy, Check } from 'lucide-react';
+import { api, ApiError, getClientToken, getCurrentUser, logout, type AuthUser, type ConnectorsResponse } from '@/lib/api';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -10,11 +12,28 @@ export default function ProfilePage() {
   const [connectors, setConnectors] = useState<ConnectorsResponse | null>(null);
   const [seeding, setSeeding] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     getCurrentUser().then(setUser);
     api.get<ConnectorsResponse>('/connectors').then(setConnectors).catch(() => {});
   }, []);
+
+  const mcpConfig = JSON.stringify({
+    mcpServers: {
+      shipyard: {
+        command: 'python',
+        args: ['/absolute/path/to/shipyard/backend/mcp_server/server.py'],
+        env: { SHIPYARD_TOKEN: getClientToken() ?? '<your token>', SHIPYARD_API_URL: API_URL },
+      },
+    },
+  }, null, 2);
+
+  const copyConfig = () => {
+    navigator.clipboard.writeText(mcpConfig);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const seedDemoTeam = async () => {
     setSeeding(true);
@@ -66,6 +85,28 @@ export default function ProfilePage() {
         ) : (
           <p style={{ fontSize: 13, color: '#9a9a9a', margin: 0 }}>Loading…</p>
         )}
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 24, marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: 10 }}>
+          Use Shipyard from your IDE
+        </div>
+        <p style={{ fontSize: 13, color: '#6B6B6B', margin: '0 0 14px' }}>
+          Query your catalog from Claude Code, Cursor, or any MCP-aware editor — runs locally,
+          proxies to this same API with your token. <code style={{ fontSize: 11.5 }}>backend/mcp_server/server.py</code>{' '}
+          has the setup steps. Paste this into your MCP client config:
+        </p>
+        <div style={{ position: 'relative', background: '#0A2463', borderRadius: 10, padding: 14 }}>
+          <button
+            onClick={copyConfig}
+            style={{ position: 'absolute', top: 10, right: 10, cursor: 'pointer', border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: 7, padding: 6 }}
+          >
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+          </button>
+          <pre style={{ margin: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#00E87A', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
+            {mcpConfig}
+          </pre>
+        </div>
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 24, marginBottom: 20 }}>
