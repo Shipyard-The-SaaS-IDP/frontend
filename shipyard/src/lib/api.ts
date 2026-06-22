@@ -260,6 +260,14 @@ export interface ArchitectChatMessage {
 export interface SessionResponse {
   messages: ArchitectChatMessage[];
 }
+export interface ArchitectSessionSummary {
+  sessionId: string;
+  preview: string;
+  updatedAt: string | null;
+}
+export interface SessionsListResponse {
+  sessions: ArchitectSessionSummary[];
+}
 
 export interface StatusBreakdownItem {
   status: string;

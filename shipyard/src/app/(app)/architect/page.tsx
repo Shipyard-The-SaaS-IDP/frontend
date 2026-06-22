@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode, ExternalLink, Hammer, MessageCircleQuestion, Bot } from 'lucide-react';
-import { api, ApiError, type ApprovePlanResponse, type ArchitectResource, type IacFile, type ProposedPlan, type SendMessageResponse } from '@/lib/api';
+import { api, ApiError, type ApprovePlanResponse, type ArchitectResource, type IacFile, type ProposedPlan, type SendMessageResponse, type SessionResponse } from '@/lib/api';
 
 const RESOURCE_ICONS: Record<ArchitectResource['type'], typeof GitBranch> = {
   github: GitBranch, server: Server, database: Database, queue: ListOrdered,
@@ -119,17 +119,34 @@ function PlanCard({ message, onApprove, onDeny }: { message: Message; onApprove:
 function ArchitectInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [sessionId] = useState(() => (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36)));
+  const [sessionId] = useState(() => searchParams.get('session') || (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36)));
   const [mode, setMode] = useState<'ask' | 'build'>('build');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Resuming a previous chat from the sidebar — hydrate the transcript.
+  // Historical plan cards render as a static note rather than an
+  // interactive approve/deny card: the underlying request may already be
+  // resolved by the time you're looking back at it.
+  useEffect(() => {
+    if (!searchParams.get('session')) { setHistoryLoaded(true); return; }
+    api.get<SessionResponse>(`/architect/sessions/${sessionId}`).then((res) => {
+      setMessages(res.messages.map((m) => ({
+        id: crypto.randomUUID(),
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content || (m.toolCalls.find((t) => t.name === 'propose_plan') ? '(proposed a plan)' : ''),
+      })));
+    }).finally(() => setHistoryLoaded(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sendMessage = useCallback(async (text: string, modeOverride?: 'ask' | 'build') => {
     if (!text.trim() || sending) return;
@@ -139,6 +156,13 @@ function ArchitectInner() {
     setError(null);
     setInput('');
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text }]);
+    if (!searchParams.get('session')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('session', sessionId);
+      params.delete('prompt');
+      params.delete('autoGenerate');
+      router.replace(`/architect?${params.toString()}`);
+    }
 
     try {
       const res = await api.post<SendMessageResponse>(`/architect/sessions/${sessionId}/messages`, { message: text, mode: activeMode });
@@ -151,7 +175,7 @@ function ArchitectInner() {
     } finally {
       setSending(false);
     }
-  }, [sessionId, sending, mode]);
+  }, [sessionId, sending, mode, searchParams, router]);
 
   useEffect(() => {
     const incoming = searchParams.get('prompt');
@@ -178,7 +202,7 @@ function ArchitectInner() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 'calc(100vh - 64px)' }}>
       <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 140px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
-          {messages.length === 0 && (
+          {historyLoaded && messages.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 0 0' }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: '#00E87A14', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
                 <Sparkles size={20} color="#0A2463" strokeWidth={1.8} />
