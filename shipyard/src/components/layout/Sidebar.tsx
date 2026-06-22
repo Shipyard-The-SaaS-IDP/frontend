@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Library, Plug, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Library, Plug, Sparkles, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUIStore } from '@/store/ui';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Catalog', icon: Library },
   { href: '/architect', label: 'AI Architect', icon: Sparkles },
+  { href: '/scorecards', label: 'Scorecards', icon: BarChart3 },
   { href: '/integrations', label: 'Integrations', icon: Plug },
 ];
 

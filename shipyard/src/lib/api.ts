@@ -208,3 +208,36 @@ export interface ArchitectChatMessage {
 export interface SessionResponse {
   messages: ArchitectChatMessage[];
 }
+
+export interface StatusBreakdownItem {
+  status: string;
+  label: string;
+  count: number;
+  color: string;
+}
+export interface StackCount {
+  name: string;
+  count: number;
+}
+export interface ConnectorCoverageItem {
+  category: string;
+  connected: number;
+  total: number;
+}
+export interface RecentArchitectRequest {
+  id: string;
+  serviceName: string;
+  status: string;
+  createdAt: string;
+}
+export interface ScorecardsResponse {
+  serviceCount: number;
+  healthScore: number | null;
+  statusBreakdown: StatusBreakdownItem[];
+  topStack: StackCount[];
+  connectorCoverage: ConnectorCoverageItem[];
+  connectedCount: number;
+  totalConnectors: number;
+  architectActivity: { total: number; approved: number; denied: number; pending: number };
+  recentRequests: RecentArchitectRequest[];
+}
