@@ -18,6 +18,7 @@ const MARKS: Record<string, [string, string]> = {
   linear: ['0 0 24 24', '<path fill="#5E6AD2" d="M3 13.7 10.3 21A9 9 0 0 1 3 13.7zM3.1 11 13 20.9a9 9 0 0 0 2.3-.9L4 8.7A9 9 0 0 0 3.1 11zM5 6.8 17.2 19a9 9 0 0 0 1.6-1.5L6.5 5.2A9 9 0 0 0 5 6.8zM8.4 3.7a9 9 0 0 1 11.9 11.9z"/>'],
   jira: ['0 0 24 24', '<path fill="#2684FF" d="M11.6 2 3 10.6a1 1 0 0 0 0 1.4l8.6 8.6 2.8-2.8-5.8-5.8 5.8-5.8z"/><path fill="#2684FF" opacity=".75" d="M16.2 6.6 12.5 10.3l1.9 1.9 1.8-1.9L21 14.9V11z"/>'],
   notion: ['0 0 24 24', '<rect x="3" y="3" width="18" height="18" rx="3" fill="#fff" stroke="#0A2463" stroke-width="1.4"/><path fill="#0A2463" d="M8 7.8h2.1l3.9 5V7.8h1.9v8.4h-2l-4-5.1v5.1H8z"/>'],
+  trello: ['0 0 24 24', '<rect x="3" y="3" width="18" height="18" rx="3" fill="#0079BF"/><rect x="6" y="6" width="5" height="9" rx="1" fill="#fff"/><rect x="13" y="6" width="5" height="6" rx="1" fill="#fff"/>'],
   snowflake: ['0 0 24 24', '<g stroke="#29B5E8" stroke-width="1.5" stroke-linecap="round"><path d="M12 3.2v17.6M4.4 7.6l15.2 8.8M19.6 7.6 4.4 16.4"/></g><g fill="#29B5E8"><circle cx="12" cy="3.4" r="1.1"/><circle cx="12" cy="20.6" r="1.1"/><circle cx="4.6" cy="7.7" r="1.1"/><circle cx="19.4" cy="16.3" r="1.1"/><circle cx="19.4" cy="7.7" r="1.1"/><circle cx="4.6" cy="16.3" r="1.1"/></g>'],
   vault: ['0 0 24 24', '<path fill="#0A2463" d="M12 2 3.5 5v6c0 4.8 3.6 8.4 8.5 10.8C16.9 19.4 20.5 15.8 20.5 11V5z"/><path fill="#fff" d="m12 7.5-2.3 7h1.5l.8-2.6.8 2.6h1.5z"/>'],
 };

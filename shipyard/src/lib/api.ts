@@ -37,6 +37,10 @@ export function getGsuiteConnectUrl(nextPath: string): string {
   return getOAuthConnectUrl('gsuite', nextPath);
 }
 
+export function getNotionConnectUrl(nextPath: string): string {
+  return getOAuthConnectUrl('notion', nextPath);
+}
+
 /**
  * Client-side fetch against the FastAPI backend (a different origin than the
  * frontend, so the shipyard_token cookie can't travel automatically — send it
@@ -137,6 +141,23 @@ export interface GcpService {
 export interface GcpServicesResponse {
   projectId: string;
   services: GcpService[];
+}
+export interface TrelloBoard {
+  name: string;
+  url: string;
+  closed: boolean;
+  lastActivity: string;
+}
+export interface TrelloBoardsResponse {
+  boards: TrelloBoard[];
+}
+export interface NotionPage {
+  title: string;
+  url: string;
+  lastEditedTime: string;
+}
+export interface NotionPagesResponse {
+  pages: NotionPage[];
 }
 
 export interface ConnectorsResponse {

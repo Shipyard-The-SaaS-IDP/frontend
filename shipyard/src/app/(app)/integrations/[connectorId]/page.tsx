@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock, Calendar, Cloud } from 'lucide-react';
+import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock, Calendar, Cloud, Kanban, FileText } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
-import { api, ApiError, type ConnectorsResponse, type ConnectorItem, type GithubReposResponse, type GsuiteEventsResponse, type GcpServicesResponse } from '@/lib/api';
+import {
+  api, ApiError, type ConnectorsResponse, type ConnectorItem, type GithubReposResponse, type GsuiteEventsResponse,
+  type GcpServicesResponse, type TrelloBoardsResponse, type NotionPagesResponse,
+} from '@/lib/api';
 
 function GithubDeepDive({ connectorName }: { connectorName: string }) {
   const [data, setData] = useState<GithubReposResponse | null>(null);
@@ -138,6 +141,79 @@ function GcpDeepDive({ connectorName }: { connectorName: string }) {
   );
 }
 
+function TrelloDeepDive({ connectorName }: { connectorName: string }) {
+  const [data, setData] = useState<TrelloBoardsResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<TrelloBoardsResponse>('/connectors/trello/boards')
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load Trello data.'));
+  }, []);
+
+  if (error) return <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>;
+  if (!data) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>{data.boards.length} boards</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.boards.map((b) => (
+          <a
+            key={b.url}
+            href={b.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px', textDecoration: 'none' }}
+          >
+            <Kanban size={14} color="#9a9a9a" />
+            <span style={{ fontWeight: 600, fontSize: 14, color: '#0A2463' }}>{b.name}</span>
+            {b.closed && <span style={{ fontSize: 11, color: '#9a9a9a' }}>(closed)</span>}
+            <ExternalLink size={12} color="#9a9a9a" style={{ marginLeft: 'auto' }} />
+          </a>
+        ))}
+        {data.boards.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No boards found.</p>}
+      </div>
+    </div>
+  );
+}
+
+function NotionDeepDive({ connectorName }: { connectorName: string }) {
+  const [data, setData] = useState<NotionPagesResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<NotionPagesResponse>('/connectors/notion/pages')
+      .then(setData)
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load Notion data.'));
+  }, []);
+
+  if (error) return <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>;
+  if (!data) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
+
+  return (
+    <div>
+      <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>{data.pages.length} pages</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.pages.map((p) => (
+          <a
+            key={p.url}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px', textDecoration: 'none' }}
+          >
+            <FileText size={14} color="#9a9a9a" />
+            <span style={{ fontWeight: 600, fontSize: 14, color: '#0A2463' }}>{p.title}</span>
+            <ExternalLink size={12} color="#9a9a9a" style={{ marginLeft: 'auto' }} />
+          </a>
+        ))}
+        {data.pages.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No pages found.</p>}
+      </div>
+    </div>
+  );
+}
+
 function GenericConnectedPlaceholder({ name }: { name: string }) {
   return (
     <div style={{ border: '1px dashed #EAEAEA', borderRadius: 14, padding: '40px 24px', textAlign: 'center' }}>
@@ -200,6 +276,8 @@ export default function ConnectorDetailPage({ params }: { params: Promise<{ conn
         connector.id === 'github' ? <GithubDeepDive connectorName={connector.name} />
         : connector.id === 'gsuite' ? <GsuiteDeepDive connectorName={connector.name} />
         : connector.id === 'gcp' ? <GcpDeepDive connectorName={connector.name} />
+        : connector.id === 'trello' ? <TrelloDeepDive connectorName={connector.name} />
+        : connector.id === 'notion' ? <NotionDeepDive connectorName={connector.name} />
         : <GenericConnectedPlaceholder name={connector.name} />
       ) : (
         <div style={{ border: '1px dashed #EAEAEA', borderRadius: 14, padding: '40px 24px', textAlign: 'center' }}>

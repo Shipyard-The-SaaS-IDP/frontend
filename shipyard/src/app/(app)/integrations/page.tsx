@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock, X } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
 import { COMING_SOON } from '@/components/integrations/coming-soon';
-import { api, ApiError, getGithubConnectUrl, getGsuiteConnectUrl, getSlackConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
+import { api, ApiError, getGithubConnectUrl, getGsuiteConnectUrl, getNotionConnectUrl, getSlackConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
 
 // Connectors with a real OAuth flow — rendered as a navigation link instead
 // of a toggle button. Everything else is still a simulated toggle for now.
@@ -12,10 +12,11 @@ const OAUTH_CONNECT_URLS: Record<string, (next: string) => string> = {
   github: getGithubConnectUrl,
   slack: getSlackConnectUrl,
   gsuite: getGsuiteConnectUrl,
+  notion: getNotionConnectUrl,
 };
 
-// Not OAuth — connecting means uploading a credential file/key directly.
-const KEY_UPLOAD_CONNECTOR_IDS = new Set(['gcp']);
+// Not OAuth — connecting means pasting a credential (key, or key+token) directly.
+const KEY_UPLOAD_CONNECTOR_IDS = new Set(['gcp', 'trello']);
 
 function GcpConnectModal({ onClose, onConnected }: { onClose: () => void; onConnected: () => void }) {
   const [keyText, setKeyText] = useState('');
@@ -67,6 +68,64 @@ function GcpConnectModal({ onClose, onConnected }: { onClose: () => void; onConn
           style={{
             width: '100%', cursor: connecting ? 'default' : 'pointer', border: 'none', background: '#00E87A', color: '#0A2463',
             fontWeight: 700, fontSize: 14, padding: '11px 0', borderRadius: 10, opacity: !keyText.trim() || connecting ? 0.6 : 1,
+          }}
+        >
+          {connecting ? 'Connecting…' : 'Connect'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TrelloConnectModal({ onClose, onConnected }: { onClose: () => void; onConnected: () => void }) {
+  const [apiKey, setApiKey] = useState('');
+  const [token, setToken] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+
+  const submit = async () => {
+    setError(null);
+    setConnecting(true);
+    try {
+      await api.post('/connectors/trello/connect', { apiKey, token });
+      onConnected();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not connect with this key/token.');
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,36,99,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 420, maxWidth: '90vw' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <h2 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 17, color: '#0A2463', margin: 0 }}>Connect Trello</h2>
+          <button onClick={onClose} style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#9a9a9a' }}><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 12.5, color: '#6B6B6B', margin: '0 0 14px' }}>
+          Get your API key and a token at{' '}
+          <a href="https://trello.com/app-key" target="_blank" rel="noopener noreferrer" style={{ color: '#0A2463', fontWeight: 600 }}>trello.com/app-key</a>.
+        </p>
+        <input
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="API key"
+          style={{ width: '100%', border: '1px solid #EAEAEA', borderRadius: 10, padding: '9px 12px', fontSize: 13, marginBottom: 8 }}
+        />
+        <input
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          placeholder="Token"
+          style={{ width: '100%', border: '1px solid #EAEAEA', borderRadius: 10, padding: '9px 12px', fontSize: 13, marginBottom: 10 }}
+        />
+        {error && <p style={{ color: '#ff5f57', fontSize: 12.5, margin: '0 0 10px' }}>{error}</p>}
+        <button
+          onClick={submit}
+          disabled={!apiKey.trim() || !token.trim() || connecting}
+          style={{
+            width: '100%', cursor: connecting ? 'default' : 'pointer', border: 'none', background: '#00E87A', color: '#0A2463',
+            fontWeight: 700, fontSize: 14, padding: '11px 0', borderRadius: 10, opacity: !apiKey.trim() || !token.trim() || connecting ? 0.6 : 1,
           }}
         >
           {connecting ? 'Connecting…' : 'Connect'}
@@ -217,6 +276,12 @@ export default function IntegrationsPage() {
 
       {keyUploadFor === 'gcp' && (
         <GcpConnectModal
+          onClose={() => setKeyUploadFor(null)}
+          onConnected={() => { setKeyUploadFor(null); refetch(); }}
+        />
+      )}
+      {keyUploadFor === 'trello' && (
+        <TrelloConnectModal
           onClose={() => setKeyUploadFor(null)}
           onConnected={() => { setKeyUploadFor(null); refetch(); }}
         />
