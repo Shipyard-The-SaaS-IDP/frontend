@@ -85,6 +85,22 @@ export interface ConnectorGroup {
   category: string;
   items: ConnectorItem[];
 }
+export interface GithubRepo {
+  name: string;
+  fullName: string;
+  language: string;
+  private: boolean;
+  description: string;
+  stars: number;
+  openIssues: number;
+  updatedAt: string;
+  url: string;
+}
+export interface GithubReposResponse {
+  login: string;
+  repos: GithubRepo[];
+}
+
 export interface ConnectorsResponse {
   groups: ConnectorGroup[];
   connectedCount: number;
