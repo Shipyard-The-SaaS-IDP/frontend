@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode, ExternalLink } from 'lucide-react';
+import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode, ExternalLink, Hammer, MessageCircleQuestion, Bot } from 'lucide-react';
 import { api, ApiError, type ApprovePlanResponse, type ArchitectResource, type IacFile, type ProposedPlan, type SendMessageResponse } from '@/lib/api';
 
 const RESOURCE_ICONS: Record<ArchitectResource['type'], typeof GitBranch> = {
@@ -183,12 +183,23 @@ function ArchitectInner() {
               <div style={{ width: 44, height: 44, borderRadius: 13, background: '#00E87A14', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
                 <Sparkles size={20} color="#0A2463" strokeWidth={1.8} />
               </div>
-              <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 23, color: '#0A2463', margin: '0 0 8px' }}>AI Architect</h1>
-              <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 24px', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
-                Two things I can do: <strong style={{ color: '#0A2463' }}>build</strong> new infrastructure from a plain-English
-                description (I&apos;ll check your catalog, ask if anything&apos;s unclear, and propose a plan for you to approve),
-                or <strong style={{ color: '#0A2463' }}>answer questions</strong> about services you already have.
-              </p>
+              <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 23, color: '#0A2463', margin: '0 0 18px' }}>AI Architect</h1>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 26, flexWrap: 'wrap' }}>
+                <div style={{ width: 220, textAlign: 'left', border: '1px solid #EAEAEA', borderRadius: 14, padding: 16 }}>
+                  <Hammer size={16} color="#0BA45E" style={{ marginBottom: 8 }} />
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0A2463', marginBottom: 4 }}>Build something new</div>
+                  <div style={{ fontSize: 12.5, color: '#6B6B6B', lineHeight: 1.5 }}>
+                    Describe a service in plain English. I&apos;ll check your catalog, ask if anything&apos;s unclear, then propose a plan to approve.
+                  </div>
+                </div>
+                <div style={{ width: 220, textAlign: 'left', border: '1px solid #EAEAEA', borderRadius: 14, padding: 16 }}>
+                  <MessageCircleQuestion size={16} color="#1E5FCC" style={{ marginBottom: 8 }} />
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0A2463', marginBottom: 4 }}>Ask about your catalog</div>
+                  <div style={{ fontSize: 12.5, color: '#6B6B6B', lineHeight: 1.5 }}>
+                    Stacks, owners, dependencies — anything about services you already have.
+                  </div>
+                </div>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
                 {EXAMPLE_PROMPTS.map((p) => (
                   <button
@@ -207,7 +218,15 @@ function ArchitectInner() {
           )}
 
           {messages.map((m) => (
-            <div key={m.id} style={{ marginBottom: 18, display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            <div key={m.id} style={{ marginBottom: 18, display: 'flex', gap: 8, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              {m.role === 'assistant' && (
+                <span style={{
+                  width: 26, height: 26, borderRadius: '50%', background: '#00E87A14', color: '#0A2463', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
+                }}>
+                  <Bot size={14} />
+                </span>
+              )}
               <div style={{ maxWidth: '85%' }}>
                 {m.content && (
                   <div style={{

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, LayoutGrid, GitBranch, RefreshCw } from 'lucide-react';
+import { Search, LayoutGrid, GitBranch, RefreshCw, ExternalLink } from 'lucide-react';
 import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
 
 const FILTERS = [
@@ -74,9 +74,28 @@ export default function CatalogPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, filter, router]);
 
+  // Background refresh — picks up new repos/services without a manual
+  // "Re-run discovery" click. Only polls the default (no search/filter)
+  // view, and skips the request entirely while a discovery run is already
+  // in flight to avoid racing it.
+  useEffect(() => {
+    if (query.trim() || filter !== 'all') return;
+    const interval = setInterval(() => {
+      if (rediscovering) return;
+      Promise.all([
+        api.get<ServicesResponse>('/services'),
+        api.get<MapResponse>('/services/map'),
+      ]).then(([svcRes, mapRes]) => {
+        setServices(svcRes);
+        setMap(mapRes);
+      }).catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [query, filter, rediscovering]);
+
   const dynamicFilters = useMemo(() => {
     const tags = new Set<string>();
-    services?.services.forEach((s) => s.tags.forEach((t) => tags.add(t)));
+    services?.services.forEach((s) => s.tags.forEach((t) => { if (!t.startsWith('link:')) tags.add(t); }));
     return [...FILTERS, ...[...tags].slice(0, 3).map((t) => ({ label: t, value: t }))];
   }, [services]);
 
@@ -163,30 +182,46 @@ export default function CatalogPage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-              {services?.services.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => router.push(`/catalog/${s.id}`)}
-                  style={{ cursor: 'pointer', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 18, transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 36px -22px rgba(10,36,99,0.34)'; e.currentTarget.style.borderColor = '#00E87A55'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#EAEAEA'; }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.statusColor }} />
-                    <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 600, fontSize: 16, color: '#0A2463' }}>{s.name}</span>
-                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.statusColor }}>{s.statusLabel}</span>
+              {services?.services.map((s) => {
+                const linkTag = s.tags.find((t) => t.startsWith('link:'));
+                const sourceUrl = linkTag ? linkTag.slice(5) : null;
+                const visibleTags = s.tags.filter((t) => !t.startsWith('link:'));
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => router.push(`/catalog/${s.id}`)}
+                    style={{ cursor: 'pointer', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 18, transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 36px -22px rgba(10,36,99,0.34)'; e.currentTarget.style.borderColor = '#00E87A55'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#EAEAEA'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.statusColor }} />
+                      <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 600, fontSize: 16, color: '#0A2463' }}>{s.name}</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.statusColor }}>{s.statusLabel}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                      {visibleTags.map((tag) => (
+                        <span key={tag} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 7, padding: '4px 9px' }}>{tag}</span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 13, borderTop: '1px solid #F2F2F2' }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: s.ownerColor, color: '#fff', fontSize: 9, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.ownerInitials}</span>
+                      <span style={{ fontSize: 12.5, color: '#6B6B6B' }}>{s.ownerName}</span>
+                      {sourceUrl && (
+                        <a
+                          href={sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: '#0A2463', fontWeight: 600, textDecoration: 'none' }}
+                        >
+                          <ExternalLink size={11} /> Source
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-                    {s.tags.map((tag) => (
-                      <span key={tag} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 7, padding: '4px 9px' }}>{tag}</span>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 13, borderTop: '1px solid #F2F2F2' }}>
-                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: s.ownerColor, color: '#fff', fontSize: 9, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.ownerInitials}</span>
-                    <span style={{ fontSize: 12.5, color: '#6B6B6B' }}>{s.ownerName}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {services?.services.length === 0 && (

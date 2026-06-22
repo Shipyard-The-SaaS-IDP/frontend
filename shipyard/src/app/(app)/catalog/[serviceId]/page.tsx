@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { api, ApiError, type ServiceDetail } from '@/lib/api';
 
 export default function ServiceDetailPage({ params }: { params: Promise<{ serviceId: string }> }) {
@@ -29,6 +29,10 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ servic
 
   if (!detail) return <div style={{ padding: 32, color: '#6B6B6B', fontSize: 14 }}>Loading…</div>;
 
+  const linkTag = detail.tags.find((t) => t.startsWith('link:'));
+  const sourceUrl = linkTag ? linkTag.slice(5) : null;
+  const visibleTags = detail.tags.filter((t) => !t.startsWith('link:'));
+
   return (
     <div style={{ padding: '28px 32px', maxWidth: 760 }}>
       <button
@@ -42,9 +46,19 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ servic
         <span style={{ width: 10, height: 10, borderRadius: '50%', background: detail.statusColor }} />
         <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 26, letterSpacing: '-0.02em', color: '#0A2463', margin: 0 }}>{detail.name}</h1>
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, color: detail.statusColor, background: detail.statusBg, padding: '4px 10px', borderRadius: 6 }}>{detail.statusLabel}</span>
+        {sourceUrl && (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#0A2463', fontWeight: 600, textDecoration: 'none' }}
+          >
+            <ExternalLink size={13} /> View source
+          </a>
+        )}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 28 }}>
-        {detail.tags.map((tag) => (
+        {visibleTags.map((tag) => (
           <span key={tag} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 7, padding: '4px 9px' }}>{tag}</span>
         ))}
       </div>
