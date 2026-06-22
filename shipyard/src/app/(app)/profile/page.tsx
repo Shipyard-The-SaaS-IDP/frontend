@@ -1,16 +1,33 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { LogOut } from 'lucide-react';
-import { api, getCurrentUser, logout, type AuthUser, type ConnectorsResponse } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { LogOut, Users } from 'lucide-react';
+import { api, ApiError, getCurrentUser, logout, type AuthUser, type ConnectorsResponse } from '@/lib/api';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [connectors, setConnectors] = useState<ConnectorsResponse | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
 
   useEffect(() => {
     getCurrentUser().then(setUser);
     api.get<ConnectorsResponse>('/connectors').then(setConnectors).catch(() => {});
   }, []);
+
+  const seedDemoTeam = async () => {
+    setSeeding(true);
+    setSeedError(null);
+    try {
+      await api.post('/demo/seed-acme-team');
+      router.push('/dashboard');
+    } catch (e) {
+      setSeedError(e instanceof ApiError ? e.message : 'Could not seed demo data.');
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const initials = user?.name
     ? user.name.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
@@ -49,6 +66,27 @@ export default function ProfilePage() {
         ) : (
           <p style={{ fontSize: 13, color: '#9a9a9a', margin: 0 }}>Loading…</p>
         )}
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 24, marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B6B6B', marginBottom: 10 }}>
+          Demo data
+        </div>
+        <p style={{ fontSize: 13, color: '#6B6B6B', margin: '0 0 14px' }}>
+          Resets your catalog and Architect history to a curated, team-flavored dataset — useful for demos.
+          This only affects your own account.
+        </p>
+        <button
+          onClick={seedDemoTeam}
+          disabled={seeding}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, cursor: seeding ? 'default' : 'pointer', border: '1px solid #EAEAEA',
+            background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13.5, padding: '10px 18px', borderRadius: 10, opacity: seeding ? 0.6 : 1,
+          }}
+        >
+          <Users size={15} /> {seeding ? 'Seeding…' : 'Seed Acme Corp demo team'}
+        </button>
+        {seedError && <p style={{ fontSize: 12.5, color: '#ff5f57', margin: '10px 0 0' }}>{seedError}</p>}
       </div>
 
       <button
