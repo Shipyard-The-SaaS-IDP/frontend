@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
-import { getCurrentUser, type AuthUser } from '@/lib/api';
+import { Plus, User, LogOut, ChevronDown } from 'lucide-react';
+import { getCurrentUser, logout, type AuthUser } from '@/lib/api';
 
 function ShipyardMark({ size = 28 }: { size?: number }) {
   return (
@@ -13,6 +13,68 @@ function ShipyardMark({ size = 28 }: { size?: number }) {
   );
 }
 
+function AccountMenu({ user }: { user: AuthUser | null }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  const initials = user?.name
+    ? user.name.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
+    : user?.email?.[0]?.toUpperCase() ?? '?';
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+      >
+        <div
+          title={user?.email}
+          style={{
+            width: 32, height: 32, borderRadius: '50%', background: '#0A2463', color: '#fff', fontSize: 12,
+            fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-jetbrains-mono)',
+          }}
+        >
+          {initials}
+        </div>
+        <ChevronDown size={14} color="#9a9a9a" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 200, background: '#fff',
+          border: '1px solid #EAEAEA', borderRadius: 12, boxShadow: '0 12px 30px -10px rgba(10,36,99,0.2)', overflow: 'hidden', zIndex: 50,
+        }}>
+          <div style={{ padding: '12px 14px', borderBottom: '1px solid #F2F2F2' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#0A2463', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'Account'}</div>
+            <div style={{ fontSize: 11.5, color: '#9a9a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
+          </div>
+          <button
+            onClick={() => { setOpen(false); router.push('/profile'); }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px', cursor: 'pointer', border: 'none', background: 'none', fontSize: 13, color: '#0A2463', textAlign: 'left' }}
+          >
+            <User size={14} /> Profile
+          </button>
+          <button
+            onClick={() => { setOpen(false); logout(); }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px', cursor: 'pointer', border: 'none', background: 'none', fontSize: 13, color: '#ff5f57', textAlign: 'left' }}
+          >
+            <LogOut size={14} /> Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AppTopNav() {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -20,10 +82,6 @@ export default function AppTopNav() {
   useEffect(() => {
     getCurrentUser().then(setUser);
   }, []);
-
-  const initials = user?.name
-    ? user.name.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? '?';
 
   return (
     <nav
@@ -53,15 +111,7 @@ export default function AppTopNav() {
         >
           <Plus size={15} strokeWidth={2} /> AI Architect
         </button>
-        <div
-          title={user?.email}
-          style={{
-            width: 32, height: 32, borderRadius: '50%', background: '#0A2463', color: '#fff', fontSize: 12,
-            fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-jetbrains-mono)',
-          }}
-        >
-          {initials}
-        </div>
+        <AccountMenu user={user} />
       </div>
     </nav>
   );

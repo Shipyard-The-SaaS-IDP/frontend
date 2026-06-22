@@ -80,6 +80,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 }
 
+/** shipyard_token is set client-side (see auth/callback/page.tsx), not by the
+ * backend — clearing it client-side is the actual logout, no API call needed. */
+export function logout(): void {
+  document.cookie = 'shipyard_token=; path=/; max-age=0; SameSite=Lax';
+  window.location.href = '/signup';
+}
+
 // ─── Types matching backend responses ────────────────────────────────────────
 
 export interface ConnectorItem {
@@ -199,6 +206,7 @@ export interface ApprovePlanResponse {
   status: string;
   service: { id: string; name: string };
   iacFiles: IacFile[];
+  repo: { repoUrl: string; repoFullName: string } | null;
 }
 export interface ArchitectChatMessage {
   role: 'user' | 'model' | 'function';

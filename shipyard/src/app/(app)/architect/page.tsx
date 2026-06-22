@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode } from 'lucide-react';
+import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode, ExternalLink } from 'lucide-react';
 import { api, ApiError, type ApprovePlanResponse, type ArchitectResource, type IacFile, type ProposedPlan, type SendMessageResponse } from '@/lib/api';
 
 const RESOURCE_ICONS: Record<ArchitectResource['type'], typeof GitBranch> = {
@@ -15,6 +15,7 @@ interface Message {
   plan?: ProposedPlan;
   planStatus?: 'pending' | 'approved' | 'denied';
   iacFiles?: IacFile[];
+  repo?: { repoUrl: string; repoFullName: string } | null;
 }
 
 function IacFilesPanel({ files }: { files: IacFile[] }) {
@@ -51,11 +52,11 @@ function IacFilesPanel({ files }: { files: IacFile[] }) {
   );
 }
 
-const EXAMPLE_PROMPTS = [
-  { label: 'Build something new', text: 'A Go service that reads the orders queue and writes enriched events to a new Postgres table.' },
-  { label: 'Build something new', text: 'A Python cron worker that aggregates daily usage into Snowflake.' },
-  { label: 'Ask about your catalog', text: 'What stack is payments-service running on, and what depends on it?' },
-  { label: 'Ask about your catalog', text: 'Do I already have a Postgres database I could reuse for a new feature?' },
+const EXAMPLE_PROMPTS: { mode: 'ask' | 'build'; label: string; text: string }[] = [
+  { mode: 'build', label: 'Build', text: 'A Go service that reads the orders queue and writes enriched events to a new Postgres table.' },
+  { mode: 'build', label: 'Build', text: 'A Python cron worker that aggregates daily usage into Snowflake.' },
+  { mode: 'ask', label: 'Ask', text: 'What stack is payments-service running on, and what depends on it?' },
+  { mode: 'ask', label: 'Ask', text: 'Do I already have a Postgres database I could reuse for a new feature?' },
 ];
 
 function PlanCard({ message, onApprove, onDeny }: { message: Message; onApprove: () => void; onDeny: () => void }) {
@@ -119,6 +120,7 @@ function ArchitectInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sessionId] = useState(() => (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36)));
+  const [mode, setMode] = useState<'ask' | 'build'>('build');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -129,15 +131,17 @@ function ArchitectInner() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, modeOverride?: 'ask' | 'build') => {
     if (!text.trim() || sending) return;
+    const activeMode = modeOverride ?? mode;
+    if (modeOverride) setMode(modeOverride);
     setSending(true);
     setError(null);
     setInput('');
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text }]);
 
     try {
-      const res = await api.post<SendMessageResponse>(`/architect/sessions/${sessionId}/messages`, { message: text });
+      const res = await api.post<SendMessageResponse>(`/architect/sessions/${sessionId}/messages`, { message: text, mode: activeMode });
       setMessages((prev) => [...prev, {
         id: crypto.randomUUID(), role: 'assistant', content: res.reply,
         plan: res.proposedPlan ?? undefined, planStatus: res.proposedPlan ? 'pending' : undefined,
@@ -147,7 +151,7 @@ function ArchitectInner() {
     } finally {
       setSending(false);
     }
-  }, [sessionId, sending]);
+  }, [sessionId, sending, mode]);
 
   useEffect(() => {
     const incoming = searchParams.get('prompt');
@@ -162,7 +166,7 @@ function ArchitectInner() {
     try {
       const res = await api.post<ApprovePlanResponse>(`/architect/${requestId}/${action}`);
       if (action === 'approve') {
-        setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, iacFiles: res.iacFiles } : m)));
+        setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, iacFiles: res.iacFiles, repo: res.repo } : m)));
       }
     } catch {
       // revert on failure
@@ -189,7 +193,7 @@ function ArchitectInner() {
                 {EXAMPLE_PROMPTS.map((p) => (
                   <button
                     key={p.text}
-                    onClick={() => sendMessage(p.text)}
+                    onClick={() => sendMessage(p.text, p.mode)}
                     style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#6B6B6B', fontSize: 12.5, padding: '8px 14px', borderRadius: 999, maxWidth: 480, display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left' }}
                   >
                     <span style={{ flexShrink: 0, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#0BA45E', background: '#00E87A14', padding: '2px 7px', borderRadius: 5 }}>
@@ -214,6 +218,19 @@ function ArchitectInner() {
                   </div>
                 )}
                 {m.plan && <PlanCard message={m} onApprove={() => resolvePlan(m.id, m.plan!.requestId, 'approve')} onDeny={() => resolvePlan(m.id, m.plan!.requestId, 'deny')} />}
+                {m.planStatus === 'approved' && m.repo && (
+                  <a
+                    href={m.repo.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600,
+                      color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 10, padding: '8px 13px', textDecoration: 'none',
+                    }}
+                  >
+                    <GitBranch size={14} /> Repo created: {m.repo.repoFullName} <ExternalLink size={12} color="#9a9a9a" />
+                  </a>
+                )}
                 {m.planStatus === 'approved' && m.iacFiles && <IacFilesPanel files={m.iacFiles} />}
                 {m.planStatus === 'approved' && (
                   <button onClick={() => router.push('/dashboard')} style={{ marginTop: 8, cursor: 'pointer', border: 'none', background: 'none', color: '#0BA45E', fontWeight: 600, fontSize: 12.5, padding: 0, textDecoration: 'underline' }}>
@@ -231,6 +248,23 @@ function ArchitectInner() {
       </div>
 
       <div style={{ position: 'sticky', bottom: 0, padding: '0 32px 24px', background: 'linear-gradient(to top, #fff 60%, transparent)' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto 8px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', border: '1px solid #EAEAEA', borderRadius: 10, padding: 3, background: '#FAFAFA' }}>
+            {(['ask', 'build'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: 'none', fontWeight: 600, fontSize: 12.5,
+                  padding: '6px 16px', borderRadius: 8, background: mode === m ? '#fff' : 'transparent',
+                  color: mode === m ? '#0A2463' : '#9a9a9a', boxShadow: mode === m ? '0 1px 4px rgba(10,36,99,0.12)' : 'none',
+                }}
+              >
+                {m === 'ask' ? 'Ask about your catalog' : 'Build something new'}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{
           maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'flex-end', gap: 8, background: '#fff',
           border: '1px solid #EAEAEA', borderRadius: 18, padding: 8, boxShadow: '0 12px 30px -16px rgba(10,36,99,0.25)',
@@ -239,7 +273,7 @@ function ArchitectInner() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-            placeholder="Describe what you need…"
+            placeholder={mode === 'ask' ? 'Ask about a service in your catalog…' : 'Describe what you need…'}
             rows={1}
             style={{ flex: 1, resize: 'none', border: 'none', outline: 'none', padding: '8px 10px', fontSize: 14.5, color: '#0A2463', fontFamily: 'inherit', maxHeight: 120 }}
           />

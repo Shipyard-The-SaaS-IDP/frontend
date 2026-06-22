@@ -21,6 +21,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rediscovering, setRediscovering] = useState(false);
+  const [rediscoverNote, setRediscoverNote] = useState<string | null>(null);
 
   const loadDetail = useCallback((id: string) => {
     api.get<ServiceDetail>(`/services/${id}`).then(setDetail);
@@ -28,16 +29,20 @@ export default function CatalogPage() {
 
   const rerunDiscovery = async () => {
     setRediscovering(true);
+    setRediscoverNote('Reading manifests on your 10 most recently updated repos — usually 10–20s…');
     try {
-      await api.post('/onboarding/discover?force=true');
+      const res = await api.post<{ serviceCount: number }>('/onboarding/discover?force=true');
       const [svcRes, mapRes] = await Promise.all([
         api.get<ServicesResponse>('/services'),
         api.get<MapResponse>('/services/map'),
       ]);
       setServices(svcRes);
       setMap(mapRes);
+      setRediscoverNote(`Done — reclassified ${res.serviceCount} services.`);
+      setTimeout(() => setRediscoverNote(null), 4000);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not re-run discovery.');
+      setRediscoverNote(null);
     } finally {
       setRediscovering(false);
     }
@@ -119,9 +124,15 @@ export default function CatalogPage() {
             ))}
           </div>
         </div>
-        <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 22px' }}>
+        <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 8px' }}>
           {view === 'list' ? 'Every service Shipyard discovered, always current.' : 'Live dependency graph, discovered from your code & environments.'}
         </p>
+        {rediscoverNote && (
+          <p style={{ fontSize: 12.5, color: rediscovering ? '#9a9a9a' : '#0BA45E', margin: '0 0 14px', fontFamily: 'var(--font-jetbrains-mono)' }}>
+            {rediscoverNote}
+          </p>
+        )}
+        {!rediscoverNote && <div style={{ marginBottom: 22 }} />}
 
         {view === 'list' ? (
           <>
