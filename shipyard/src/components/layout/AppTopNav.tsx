@@ -42,7 +42,7 @@ export default function AppTopNav() {
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
         <button
-          onClick={() => router.push('/workflows/new')}
+          onClick={() => router.push('/architect')}
           style={{
             cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, border: 'none',
             background: '#00E87A', color: '#0A2463', fontWeight: 600, fontSize: 14, padding: '9px 16px',
@@ -51,7 +51,7 @@ export default function AppTopNav() {
           onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,232,122,0.35)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(10,36,99,0.08)'; }}
         >
-          <Plus size={15} strokeWidth={2} /> New service
+          <Plus size={15} strokeWidth={2} /> AI Architect
         </button>
         <div
           title={user?.email}

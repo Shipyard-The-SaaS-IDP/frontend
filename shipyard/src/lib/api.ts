@@ -157,9 +157,21 @@ export interface ArchitectResource {
   title: string;
   sub: string;
 }
-export interface GenerateResponse {
+export interface ProposedPlan {
   requestId: string;
   serviceName: string;
   resources: ArchitectResource[];
   planLines: PlanLine[];
+}
+export interface SendMessageResponse {
+  reply: string;
+  proposedPlan: ProposedPlan | null;
+}
+export interface ArchitectChatMessage {
+  role: 'user' | 'model' | 'function';
+  content: string;
+  toolCalls: Array<{ name: string; args?: Record<string, unknown>; result?: unknown }>;
+}
+export interface SessionResponse {
+  messages: ArchitectChatMessage[];
 }
