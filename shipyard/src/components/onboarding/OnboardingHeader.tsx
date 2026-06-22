@@ -7,7 +7,7 @@ function ShipyardMark() {
   );
 }
 
-export default function OnboardingHeader({ step }: { step: 1 | 2 | 3 }) {
+export default function OnboardingHeader({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
     <div style={{ height: 64, borderBottom: '1px solid #EAEAEA', display: 'flex', alignItems: 'center', padding: '0 28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -15,7 +15,7 @@ export default function OnboardingHeader({ step }: { step: 1 | 2 | 3 }) {
         <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 17, color: '#0A2463', letterSpacing: '-0.02em' }}>Shipyard</span>
       </div>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-        {[1, 2, 3].map((d) => (
+        {[1, 2, 3, 4].map((d) => (
           <span key={d} style={{ width: 26, height: 5, borderRadius: 999, background: d <= step ? '#00E87A' : '#EAEAEA' }} />
         ))}
       </div>
