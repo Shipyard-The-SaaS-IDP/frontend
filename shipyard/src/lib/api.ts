@@ -183,6 +183,15 @@ export interface SendMessageResponse {
   reply: string;
   proposedPlan: ProposedPlan | null;
 }
+export interface IacFile {
+  path: string;
+  content: string;
+}
+export interface ApprovePlanResponse {
+  status: string;
+  service: { id: string; name: string };
+  iacFiles: IacFile[];
+}
 export interface ArchitectChatMessage {
   role: 'user' | 'model' | 'function';
   content: string;

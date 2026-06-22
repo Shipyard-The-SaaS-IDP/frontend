@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles } from 'lucide-react';
-import { api, ApiError, type ArchitectResource, type ProposedPlan, type SendMessageResponse } from '@/lib/api';
+import { ArrowUp, Check, X, GitBranch, Server, Database, ListOrdered, Sparkles, FileCode } from 'lucide-react';
+import { api, ApiError, type ApprovePlanResponse, type ArchitectResource, type IacFile, type ProposedPlan, type SendMessageResponse } from '@/lib/api';
 
 const RESOURCE_ICONS: Record<ArchitectResource['type'], typeof GitBranch> = {
   github: GitBranch, server: Server, database: Database, queue: ListOrdered,
@@ -14,6 +14,41 @@ interface Message {
   content: string;
   plan?: ProposedPlan;
   planStatus?: 'pending' | 'approved' | 'denied';
+  iacFiles?: IacFile[];
+}
+
+function IacFilesPanel({ files }: { files: IacFile[] }) {
+  const [active, setActive] = useState(0);
+  if (files.length === 0) return null;
+  return (
+    <div style={{ marginTop: 10, border: '1px solid #EAEAEA', borderRadius: 14, overflow: 'hidden', maxWidth: 560 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid #EAEAEA', background: '#FAFAFA' }}>
+        <FileCode size={13} color="#0A2463" />
+        <span style={{ fontWeight: 600, fontSize: 12.5, color: '#0A2463' }}>Generated infrastructure</span>
+      </div>
+      <div style={{ display: 'flex', gap: 2, padding: '8px 10px 0', flexWrap: 'wrap' }}>
+        {files.map((f, i) => (
+          <button
+            key={f.path}
+            onClick={() => setActive(i)}
+            style={{
+              cursor: 'pointer', border: 'none', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5,
+              padding: '6px 11px', borderRadius: 8, background: active === i ? '#0A2463' : 'transparent',
+              color: active === i ? '#fff' : '#6B6B6B', fontWeight: 600,
+            }}
+          >
+            {f.path}
+          </button>
+        ))}
+      </div>
+      <pre style={{
+        margin: 0, padding: 14, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, lineHeight: 1.7,
+        color: '#0A2463', background: '#fff', overflow: 'auto', maxHeight: 320, whiteSpace: 'pre',
+      }}>
+        {files[active]?.content}
+      </pre>
+    </div>
+  );
 }
 
 const EXAMPLE_PROMPTS = [
@@ -124,7 +159,10 @@ function ArchitectInner() {
   const resolvePlan = async (messageId: string, requestId: string, action: 'approve' | 'deny') => {
     setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, planStatus: action === 'approve' ? 'approved' : 'denied' } : m)));
     try {
-      await api.post(`/architect/${requestId}/${action}`);
+      const res = await api.post<ApprovePlanResponse>(`/architect/${requestId}/${action}`);
+      if (action === 'approve') {
+        setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, iacFiles: res.iacFiles } : m)));
+      }
     } catch {
       // revert on failure
       setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, planStatus: 'pending' } : m)));
@@ -170,6 +208,7 @@ function ArchitectInner() {
                   </div>
                 )}
                 {m.plan && <PlanCard message={m} onApprove={() => resolvePlan(m.id, m.plan!.requestId, 'approve')} onDeny={() => resolvePlan(m.id, m.plan!.requestId, 'deny')} />}
+                {m.planStatus === 'approved' && m.iacFiles && <IacFilesPanel files={m.iacFiles} />}
                 {m.planStatus === 'approved' && (
                   <button onClick={() => router.push('/dashboard')} style={{ marginTop: 8, cursor: 'pointer', border: 'none', background: 'none', color: '#0BA45E', fontWeight: 600, fontSize: 12.5, padding: 0, textDecoration: 'underline' }}>
                     View in catalog →
