@@ -15,14 +15,22 @@ function getClientToken(): string | null {
 }
 
 /**
- * GitHub's OAuth flow is a real browser navigation, not a fetch — so the
- * Bearer-token pattern apiFetch uses doesn't apply. The shipyard_token
- * travels as a query param instead, which the backend round-trips through
- * GitHub's `state` param back to /connectors/github/callback.
+ * OAuth connectors (GitHub, Slack, …) are a real browser navigation, not a
+ * fetch — so the Bearer-token pattern apiFetch uses doesn't apply. The
+ * shipyard_token travels as a query param instead, which the backend
+ * round-trips through the provider's `state` param back to its callback.
  */
-export function getGithubConnectUrl(nextPath: string): string {
+function getOAuthConnectUrl(connectorId: string, nextPath: string): string {
   const token = getClientToken() ?? '';
-  return `${API_URL}/connectors/github/connect?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextPath)}`;
+  return `${API_URL}/connectors/${connectorId}/connect?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextPath)}`;
+}
+
+export function getGithubConnectUrl(nextPath: string): string {
+  return getOAuthConnectUrl('github', nextPath);
+}
+
+export function getSlackConnectUrl(nextPath: string): string {
+  return getOAuthConnectUrl('slack', nextPath);
 }
 
 /**

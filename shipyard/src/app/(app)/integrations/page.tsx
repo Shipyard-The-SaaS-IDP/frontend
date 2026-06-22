@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
 import { COMING_SOON } from '@/components/integrations/coming-soon';
-import { api, ApiError, getGithubConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
+import { api, ApiError, getGithubConnectUrl, getSlackConnectUrl, type ConnectorsResponse, type ConnectorItem } from '@/lib/api';
 
 // Connectors with a real OAuth flow — rendered as a navigation link instead
 // of a toggle button. Everything else is still a simulated toggle for now.
-const OAUTH_CONNECTOR_IDS = new Set(['github']);
+const OAUTH_CONNECT_URLS: Record<string, (next: string) => string> = {
+  github: getGithubConnectUrl,
+  slack: getSlackConnectUrl,
+};
 
 function ConnectorRow({
   c, toggling, onToggle, onOpen, isLast,
@@ -27,9 +30,9 @@ function ConnectorRow({
       </div>
       {c.connected ? (
         <ArrowRight size={16} color="#9a9a9a" />
-      ) : OAUTH_CONNECTOR_IDS.has(c.id) ? (
+      ) : OAUTH_CONNECT_URLS[c.id] ? (
         <a
-          href={getGithubConnectUrl('/integrations')}
+          href={OAUTH_CONNECT_URLS[c.id]('/integrations')}
           onClick={(e) => e.stopPropagation()}
           style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13, padding: '7px 16px', borderRadius: 9, display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
         >
