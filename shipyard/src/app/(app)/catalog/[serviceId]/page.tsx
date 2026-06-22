@@ -20,7 +20,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ servic
     return (
       <div style={{ padding: 60, textAlign: 'center' }}>
         <p style={{ color: '#9a9a9a', fontSize: 15, marginBottom: 16 }}>Service not found.</p>
-        <button onClick={() => router.push('/catalog')} style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 14, padding: '9px 18px', borderRadius: 10 }}>
+        <button onClick={() => router.push('/dashboard')} style={{ cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff', color: '#0A2463', fontWeight: 600, fontSize: 14, padding: '9px 18px', borderRadius: 10 }}>
           Back to catalog
         </button>
       </div>
@@ -32,7 +32,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ servic
   return (
     <div style={{ padding: '28px 32px', maxWidth: 760 }}>
       <button
-        onClick={() => router.push('/catalog')}
+        onClick={() => router.push('/dashboard')}
         style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: 'none', background: 'none', color: '#6B6B6B', fontSize: 13.5, fontWeight: 500, padding: 0, marginBottom: 20 }}
       >
         <ArrowLeft size={15} /> Back to catalog

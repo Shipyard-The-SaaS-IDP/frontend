@@ -1,16 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Library, Plug, Users, MessageSquare, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Library, Plug, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUIStore } from '@/store/ui';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Service map', icon: LayoutDashboard },
-  { href: '/catalog', label: 'Catalog', icon: Library },
+  { href: '/dashboard', label: 'Catalog', icon: Library },
   { href: '/architect', label: 'AI Architect', icon: Sparkles },
-  { href: '/chat', label: 'Agent', icon: MessageSquare },
   { href: '/integrations', label: 'Integrations', icon: Plug },
-  { href: '/team', label: 'Team', icon: Users },
 ];
 
 export default function Sidebar() {

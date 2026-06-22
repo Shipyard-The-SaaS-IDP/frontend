@@ -171,7 +171,7 @@ function ArchitectInner() {
                 )}
                 {m.plan && <PlanCard message={m} onApprove={() => resolvePlan(m.id, m.plan!.requestId, 'approve')} onDeny={() => resolvePlan(m.id, m.plan!.requestId, 'deny')} />}
                 {m.planStatus === 'approved' && (
-                  <button onClick={() => router.push('/catalog')} style={{ marginTop: 8, cursor: 'pointer', border: 'none', background: 'none', color: '#0BA45E', fontWeight: 600, fontSize: 12.5, padding: 0, textDecoration: 'underline' }}>
+                  <button onClick={() => router.push('/dashboard')} style={{ marginTop: 8, cursor: 'pointer', border: 'none', background: 'none', color: '#0BA45E', fontWeight: 600, fontSize: 12.5, padding: 0, textDecoration: 'underline' }}>
                     View in catalog →
                   </button>
                 )}

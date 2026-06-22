@@ -58,7 +58,7 @@ export default function OnboardingCompletePage() {
         </div>
 
         <button
-          onClick={() => router.push('/catalog')}
+          onClick={() => router.push('/dashboard')}
           style={{ cursor: 'pointer', border: 'none', background: '#00E87A', color: '#0A2463', fontWeight: 700, fontSize: 16, padding: '15px 32px', borderRadius: 13, display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: '0 8px 24px rgba(0,232,122,0.3)' }}
         >
           Explore your catalog <ArrowRight size={17} />

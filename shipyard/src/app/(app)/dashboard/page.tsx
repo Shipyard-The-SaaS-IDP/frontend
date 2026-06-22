@@ -1,12 +1,22 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search, LayoutGrid, GitBranch } from 'lucide-react';
 import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
 
-export default function DashboardPage() {
+const FILTERS = [
+  { label: 'All', value: 'all' },
+  { label: 'Healthy', value: 'healthy' },
+  { label: 'Degraded', value: 'degraded' },
+];
+
+export default function CatalogPage() {
   const router = useRouter();
-  const [map, setMap] = useState<MapResponse | null>(null);
+  const [view, setView] = useState<'list' | 'map'>('list');
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
   const [services, setServices] = useState<ServicesResponse | null>(null);
+  const [map, setMap] = useState<MapResponse | null>(null);
   const [detail, setDetail] = useState<ServiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,88 +26,175 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (filter !== 'all') params.set('filter', filter);
     Promise.all([
-      api.get<ServicesResponse>('/services'),
+      api.get<ServicesResponse>(`/services?${params.toString()}`),
       api.get<MapResponse>('/services/map'),
     ]).then(([svcRes, mapRes]) => {
-      if (svcRes.total === 0) {
+      if (svcRes.total === 0 && !query && filter === 'all') {
         router.replace('/onboarding');
         return;
       }
       setServices(svcRes);
       setMap(mapRes);
-      const first = svcRes.services[0];
-      if (first) loadDetail(first.id);
-      setLoading(false);
+      if (!detail) {
+        const first = svcRes.services[0];
+        if (first) loadDetail(first.id);
+      }
     }).catch((e) => {
       setError(e instanceof ApiError ? e.message : 'Could not reach the Shipyard API. Is NEXT_PUBLIC_API_URL set correctly?');
-      setLoading(false);
-    });
-  }, [router, loadDetail]);
+    }).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, filter, router]);
+
+  const dynamicFilters = useMemo(() => {
+    const tags = new Set<string>();
+    services?.services.forEach((s) => s.tags.forEach((t) => tags.add(t)));
+    return [...FILTERS, ...[...tags].slice(0, 3).map((t) => ({ label: t, value: t }))];
+  }, [services]);
 
   const selectNode = (nodeName: string) => {
     const match = services?.services.find((s) => s.name === nodeName);
     if (match) loadDetail(match.id);
   };
 
-  if (error) {
-    return <div style={{ padding: 32, color: '#ff5f57', fontSize: 14 }}>{error}</div>;
-  }
-
-  if (loading || !map || !services) {
-    return <div style={{ padding: 32, color: '#6B6B6B', fontSize: 14 }}>Loading your service map…</div>;
-  }
+  if (error) return <div style={{ padding: 32, color: '#ff5f57', fontSize: 14 }}>{error}</div>;
+  if (loading && !services) return <div style={{ padding: 32, color: '#6B6B6B', fontSize: 14 }}>Loading your catalog…</div>;
 
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: 'calc(100vh - 64px)' }}>
-      <div style={{ flex: 1, minWidth: 0, padding: '28px 32px' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: '28px 32px', maxWidth: view === 'list' ? 1180 : undefined }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-          <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 25, letterSpacing: '-0.02em', color: '#0A2463', margin: 0 }}>Service map</h1>
+          <h1 style={{ fontFamily: 'var(--font-sora)', fontWeight: 700, fontSize: 25, letterSpacing: '-0.02em', color: '#0A2463', margin: 0 }}>Catalog</h1>
           <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, color: '#00C9A7', background: '#00C9A714', padding: '3px 9px', borderRadius: 6 }}>
-            {services.total} services · auto
+            {services?.total ?? 0} services · auto
           </span>
-        </div>
-        <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 22px' }}>Live dependency graph, discovered from your code &amp; environments.</p>
-
-        <div style={{
-          position: 'relative', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 18, height: 480, overflow: 'hidden',
-          backgroundImage: 'radial-gradient(circle at 1px 1px, #EEEEEE 1px, transparent 0)', backgroundSize: '24px 24px',
-        }}>
-          <div style={{ position: 'absolute', top: 0, bottom: 0, width: 90, background: 'linear-gradient(90deg, transparent, #00E87A18, transparent)', animation: 'dcScan 6s ease-in-out infinite', pointerEvents: 'none' }} />
-          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 860 480" preserveAspectRatio="none">
-            {map.edges.map((e, i) => (
-              <path key={i} d={e.d} stroke={e.stroke} strokeWidth={1.6} fill="none" opacity={0.5} strokeDasharray="5 7" style={{ animation: 'dash 5s linear infinite' }} />
-            ))}
-          </svg>
-          {map.nodes.map((node) => {
-            const selected = detail?.name === node.name;
-            return (
-              <div
-                key={node.name}
-                onClick={() => selectNode(node.name)}
+          <div style={{ marginLeft: 'auto', display: 'flex', border: '1px solid #EAEAEA', borderRadius: 10, padding: 3, background: '#FAFAFA' }}>
+            {([['list', LayoutGrid, 'List'], ['map', GitBranch, 'Map']] as const).map(([v, Icon, label]) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
                 style={{
-                  position: 'absolute', left: node.left, top: node.top, width: node.w, cursor: 'pointer',
-                  background: '#fff', border: `1.5px solid ${selected ? '#00E87A' : '#EAEAEA'}`, borderRadius: 12, padding: '11px 13px',
-                  boxShadow: selected ? '0 14px 30px -10px rgba(0,232,122,0.5)' : '0 6px 16px -10px rgba(10,36,99,0.28)',
-                  animation: `floaty 7s ease-in-out infinite ${node.delay}s`, transition: 'border-color 200ms ease, box-shadow 200ms ease',
+                  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: 'none', fontWeight: 600, fontSize: 12.5,
+                  padding: '6px 12px', borderRadius: 8, background: view === v ? '#fff' : 'transparent',
+                  color: view === v ? '#0A2463' : '#9a9a9a', boxShadow: view === v ? '0 1px 4px rgba(10,36,99,0.12)' : 'none',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: node.statusColor }} />
-                  <span style={{ fontWeight: 600, fontSize: 13, color: '#0A2463' }}>{node.name}</span>
-                </div>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6B6B6B', marginBottom: 8 }}>{node.stackStr}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 17, height: 17, borderRadius: '50%', background: node.ownerColor, color: '#fff', fontSize: 8.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{node.ownerInitials}</span>
-                  <span style={{ fontSize: 10.5, color: '#6B6B6B' }}>{node.ownerName}</span>
-                </div>
-              </div>
-            );
-          })}
+                <Icon size={14} /> {label}
+              </button>
+            ))}
+          </div>
         </div>
+        <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 22px' }}>
+          {view === 'list' ? 'Every service Shipyard discovered, always current.' : 'Live dependency graph, discovered from your code & environments.'}
+        </p>
+
+        {view === 'list' ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22, flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: 240, maxWidth: 340 }}>
+                <Search size={17} color="#9a9a9a" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search services, stacks, tags…"
+                  style={{ width: '100%', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 999, padding: '10px 16px 10px 38px', fontSize: 14, color: '#0A2463' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {dynamicFilters.map((f) => {
+                  const on = filter === f.value;
+                  return (
+                    <button
+                      key={f.value}
+                      onClick={() => setFilter(f.value)}
+                      style={{ cursor: 'pointer', border: `1px solid ${on ? '#00E87A' : '#EAEAEA'}`, background: on ? '#00E87A18' : '#fff', color: '#0A2463', fontWeight: 600, fontSize: 13, padding: '7px 15px', borderRadius: 999 }}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+              {services?.services.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => router.push(`/catalog/${s.id}`)}
+                  style={{ cursor: 'pointer', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 16, padding: 18, transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 36px -22px rgba(10,36,99,0.34)'; e.currentTarget.style.borderColor = '#00E87A55'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#EAEAEA'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.statusColor }} />
+                    <span style={{ fontFamily: 'var(--font-sora)', fontWeight: 600, fontSize: 16, color: '#0A2463' }}>{s.name}</span>
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.statusColor }}>{s.statusLabel}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                    {s.tags.map((tag) => (
+                      <span key={tag} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#0A2463', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 7, padding: '4px 9px' }}>{tag}</span>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 13, borderTop: '1px solid #F2F2F2' }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: s.ownerColor, color: '#fff', fontSize: 9, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.ownerInitials}</span>
+                    <span style={{ fontSize: 12.5, color: '#6B6B6B' }}>{s.ownerName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {services?.services.length === 0 && (
+              <div style={{ padding: 60, textAlign: 'center', fontSize: 15, color: '#9a9a9a' }}>No services match your filters.</div>
+            )}
+          </>
+        ) : (
+          map && (
+            <div style={{
+              position: 'relative', background: '#fff', border: '1px solid #EAEAEA', borderRadius: 18, height: 480, overflow: 'hidden',
+              backgroundImage: 'radial-gradient(circle at 1px 1px, #EEEEEE 1px, transparent 0)', backgroundSize: '24px 24px',
+            }}>
+              <div style={{ position: 'absolute', top: 0, bottom: 0, width: 90, background: 'linear-gradient(90deg, transparent, #00E87A18, transparent)', animation: 'dcScan 6s ease-in-out infinite', pointerEvents: 'none' }} />
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 860 480" preserveAspectRatio="none">
+                {map.edges.map((e, i) => (
+                  <path key={i} d={e.d} stroke={e.stroke} strokeWidth={1.6} fill="none" opacity={0.5} strokeDasharray="5 7" style={{ animation: 'dash 5s linear infinite' }} />
+                ))}
+              </svg>
+              {map.nodes.map((node) => {
+                const selected = detail?.name === node.name;
+                return (
+                  <div
+                    key={node.name}
+                    onClick={() => selectNode(node.name)}
+                    style={{
+                      position: 'absolute', left: node.left, top: node.top, width: node.w, cursor: 'pointer',
+                      background: '#fff', border: `1.5px solid ${selected ? '#00E87A' : '#EAEAEA'}`, borderRadius: 12, padding: '11px 13px',
+                      boxShadow: selected ? '0 14px 30px -10px rgba(0,232,122,0.5)' : '0 6px 16px -10px rgba(10,36,99,0.28)',
+                      animation: `floaty 7s ease-in-out infinite ${node.delay}s`, transition: 'border-color 200ms ease, box-shadow 200ms ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: node.statusColor }} />
+                      <span style={{ fontWeight: 600, fontSize: 13, color: '#0A2463' }}>{node.name}</span>
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6B6B6B', marginBottom: 8 }}>{node.stackStr}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 17, height: 17, borderRadius: '50%', background: node.ownerColor, color: '#fff', fontSize: 8.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{node.ownerInitials}</span>
+                      <span style={{ fontSize: 10.5, color: '#6B6B6B' }}>{node.ownerName}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
       </div>
 
-      {detail && (
+      {view === 'map' && detail && (
         <div style={{ width: 360, flex: 'none', borderLeft: '1px solid #EAEAEA', background: '#fff', display: 'flex', flexDirection: 'column' }}>
           <div style={{ background: '#FAFAFA', borderBottom: '1px solid #EAEAEA', padding: '20px 22px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
