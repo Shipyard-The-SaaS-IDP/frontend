@@ -216,7 +216,7 @@ function ArchitectInner() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', maxHeight: 'calc(100vh - 64px)', overflow: 'hidden' }}>
       <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 140px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           {!historyLoaded && (
