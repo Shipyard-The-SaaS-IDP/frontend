@@ -25,12 +25,12 @@ export function IntegrationsMarquee() {
     <section id="integrations" className="border-y" style={{ background: '#FAFAFA', borderColor: '#EAEAEA' }}>
       <div className="mx-auto max-w-[1180px] px-8 pb-[30px] pt-[84px] text-center">
         <Reveal>
-          <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Integrations · MCP</p>
+          <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Integrations</p>
           <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>
-            One agent, plugged into your whole toolchain.
+            Connects to the tools you already use.
           </h2>
           <p className="mx-auto max-w-[600px] text-[17px] leading-[1.6]" style={{ color: '#6B6B6B' }}>
-            Shipyard speaks to the tools you already run through MCP, so it understands your stack the way your team does and acts right at your infrastructure layer.
+            GitHub, Slack, GCP, and more, all connected directly. No middleman, no extra setup.
           </p>
         </Reveal>
       </div>

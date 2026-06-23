@@ -47,7 +47,7 @@ export function NavBar() {
             style={{ background: '#00E87A', color: '#0A2463', boxShadow: '0 1px 2px rgba(10,36,99,0.08)' }}
           >
             <Target size={15} strokeWidth={2.2} />
-            Map your context
+            Get started free
           </a>
         </div>
       </div>

@@ -257,17 +257,17 @@ export default function CatalogPage() {
                     key={node.name}
                     onClick={() => selectNode(node.name)}
                     style={{
-                      position: 'absolute', left: node.left, top: node.top, width: node.w, cursor: 'pointer',
+                      position: 'absolute', left: node.left, top: node.top, width: node.w, height: 88, overflow: 'hidden', cursor: 'pointer',
                       background: '#fff', border: `1.5px solid ${selected ? '#00E87A' : '#EAEAEA'}`, borderRadius: 12, padding: '11px 13px',
                       boxShadow: selected ? '0 14px 30px -10px rgba(0,232,122,0.5)' : '0 6px 16px -10px rgba(10,36,99,0.28)',
                       animation: `floaty 7s ease-in-out infinite ${node.delay}s`, transition: 'border-color 200ms ease, box-shadow 200ms ease',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: node.statusColor }} />
-                      <span style={{ fontWeight: 600, fontSize: 13, color: '#0A2463' }}>{node.name}</span>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: node.statusColor }} />
+                      <span style={{ fontWeight: 600, fontSize: 13, color: '#0A2463', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{node.name}</span>
                     </div>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6B6B6B', marginBottom: 8 }}>{node.stackStr}</div>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#6B6B6B', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{node.stackStr}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 17, height: 17, borderRadius: '50%', background: node.ownerColor, color: '#fff', fontSize: 8.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{node.ownerInitials}</span>
                       <span style={{ fontSize: 10.5, color: '#6B6B6B' }}>{node.ownerName}</span>

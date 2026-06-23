@@ -21,8 +21,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shipyard — Your stack, mapped.",
-  description: "Shipyard plugs into your codebases and environments, then maps every service, owner, and dependency for you. Agentic AI at the infrastructure-as-code layer — no YAML required.",
+  title: "Shipyard: See everything you've built, automatically",
+  description: "Connect your code and the tools you already use. Shipyard finds every project, who owns it, and how they all connect, then keeps it up to date for you.",
 };
 
 export default function RootLayout({

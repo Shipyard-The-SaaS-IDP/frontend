@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ArrowRight, Target, RotateCcw, Users, Inbox, Check, Plus, Wrench, HelpCircle } from 'lucide-react';
+import { ArrowRight, Target, RotateCcw, Users, Inbox, Check, Plus, Wrench, HelpCircle, Plug, Sparkles, Hammer } from 'lucide-react';
 import { Reveal } from './Reveal';
 import { DiscoveryTerminal, InfraLayerDiagram, CatalogMock, CapabilityDemoPanel } from './Previews';
 import { IntegrationsMarquee } from './Marquee';
@@ -11,6 +11,7 @@ import {
 
 const PROBLEM_ICONS = { RotateCcw, Users, Inbox } as const;
 const CAP_ICONS = { create: Plus, maintain: Wrench, context: HelpCircle } as const;
+const STEP_ICONS = { Plug, Sparkles, Hammer } as const;
 
 export function Hero() {
   return (
@@ -18,18 +19,18 @@ export function Hero() {
       <div className="max-w-[780px]">
         <Reveal className="mb-[26px] inline-flex items-center gap-2 rounded-full border px-[13px] py-[6px] text-[13px] font-semibold" style={{ background: '#00E87A12', borderColor: '#00E87A40', color: '#0A2463' }}>
           <span className="h-[7px] w-[7px] rounded-full" style={{ background: '#00E87A', animation: 'pulse-dot 2s ease-in-out infinite' }} />
-          Agentic AI at the infrastructure-as-code layer
+          For solo builders and dev teams
         </Reveal>
 
         <Reveal delay={50}>
           <h1 className="mb-[22px] font-heading text-[clamp(44px,7vw,70px)] font-extrabold leading-[1.0] tracking-[-0.035em]" style={{ color: '#0A2463' }}>
-            Your stack, mapped.
+            See everything you&apos;ve built. Automatically.
           </h1>
         </Reveal>
 
         <Reveal delay={100}>
           <p className="mb-[34px] max-w-[600px] text-[20px] leading-[1.55]" style={{ color: '#6B6B6B' }}>
-            Shipyard plugs straight into your codebases and environments, then maps every service, owner, and dependency for you. No YAML required.
+            Connect your code and the tools you already use. Shipyard finds every project, who owns it, and how they all connect, then keeps that map up to date for you.
           </p>
         </Reveal>
 
@@ -40,7 +41,7 @@ export function Hero() {
             style={{ background: '#00E87A', color: '#0A2463', boxShadow: '0 2px 6px rgba(0,232,122,0.25)' }}
           >
             <Target size={17} strokeWidth={2.2} />
-            Map your context
+            Get started free
           </a>
           <a
             href="#product"
@@ -65,9 +66,9 @@ export function InfraLayerSection() {
     <section className="mx-auto max-w-[1180px] px-8 pb-6 pt-24">
       <Reveal className="mx-auto mb-12 max-w-[640px] text-center">
         <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>How it fits</p>
-        <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>We live in your infrastructure layer.</h2>
+        <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>Works with what you already use.</h2>
         <p className="mx-auto max-w-[540px] text-[17px] leading-[1.6]" style={{ color: '#6B6B6B' }}>
-          Shipyard threads through your whole stack: reading context from the code and services above, acting on the cloud and environments below.
+          Shipyard reads from your code and the tools you run today, then can make changes for you when you ask in plain English.
         </p>
       </Reveal>
       <Reveal>
@@ -83,7 +84,7 @@ export function ProblemSection() {
       <Reveal className="mx-auto mb-[52px] max-w-[640px] text-center">
         <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>The problem</p>
         <h2 className="font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>
-          A catalog you fill in by hand is a catalog that&apos;s always wrong.
+          A list you update by hand is wrong by next week.
         </h2>
       </Reveal>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -116,12 +117,12 @@ export function AutoDiscoveryShowcase() {
     <section id="product" className="mx-auto max-w-[1180px] px-8 py-[72px]">
       <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
         <Reveal>
-          <p className="mb-4 font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Auto-discovery</p>
+          <p className="mb-4 font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Finds it for you</p>
           <h2 className="mb-[18px] font-heading text-[36px] font-bold leading-[1.12] tracking-[-0.025em]" style={{ color: '#0A2463' }}>
-            Every other IDP starts empty. Shipyard starts full.
+            Most tools start empty. Shipyard starts full.
           </h2>
           <p className="text-[17px] leading-[1.6]" style={{ color: '#6B6B6B' }}>
-            Point it at your org. Shipyard reads what&apos;s actually running across your codebases and environments: services, languages, datastores, owners. Open it on day one and your whole estate is already there.
+            Connect your accounts and Shipyard scans what you actually have: every project, what it&apos;s built with, what database or queue it uses, and who owns it. The first time you open it, it&apos;s already there.
           </p>
         </Reveal>
         <Reveal>
@@ -138,10 +139,10 @@ export function CapabilitiesShowcase() {
   return (
     <section className="mx-auto max-w-[1180px] px-8 pb-[88px] pt-12">
       <Reveal className="mx-auto mb-11 max-w-[660px] text-center">
-        <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Natural language → IaC</p>
-        <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>Talk to your infrastructure.</h2>
+        <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>Just describe it</p>
+        <h2 className="mb-4 font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463', textWrap: 'balance' }}>Talk to it in plain English.</h2>
         <p className="mx-auto max-w-[560px] text-[17px] leading-[1.6]" style={{ color: '#6B6B6B' }}>
-          Shipyard lives inside your infrastructure layer. Spin up production, change it safely, and answer anything about it, all in plain English.
+          Describe what you need and Shipyard builds it. Ask it to change something already running, and it does that safely too. Ask it a question about your setup, and it gives you a real answer.
         </p>
       </Reveal>
 
@@ -192,26 +193,40 @@ export function HowItWorks() {
     <section className="mx-auto max-w-[1180px] px-8 py-[84px]">
       <Reveal className="mx-auto mb-14 max-w-[560px] text-center">
         <p className="mb-[14px] font-mono text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: '#00C9A7' }}>How it works</p>
-        <h2 className="font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463' }}>Three steps. No platform team.</h2>
+        <h2 className="font-heading text-[38px] font-bold leading-[1.1] tracking-[-0.025em]" style={{ color: '#0A2463' }}>Three steps. No setup required.</h2>
       </Reveal>
-      <div className="relative grid grid-cols-1 gap-7 sm:grid-cols-3">
-        <div className="absolute top-[27px] left-[16%] right-[16%] hidden h-[1.5px] opacity-40 sm:block" style={{ background: 'linear-gradient(90deg,#00E87A,#1E5FCC)' }} />
-        {HOW_IT_WORKS_STEPS.map((step, i) => (
-          <Reveal key={step.n} className="relative z-10 text-center">
-            <div
-              className="mx-auto mb-[22px] flex h-[54px] w-[54px] items-center justify-center rounded-2xl border"
-              style={{
-                background: i === 2 ? '#00E87A' : '#fff',
-                borderColor: i === 2 ? '#00E87A' : '#EAEAEA',
-                boxShadow: i === 2 ? '0 8px 20px -6px rgba(0,232,122,0.5)' : '0 6px 16px -8px rgba(10,36,99,0.2)',
-              }}
-            >
-              <span className="font-heading text-xl font-bold" style={{ color: '#0A2463' }}>{step.n}</span>
-            </div>
-            <h3 className="mb-2.5 font-heading text-[21px] font-semibold" style={{ color: '#0A2463' }}>{step.title}</h3>
-            <p className="mx-auto max-w-[240px] text-[15.5px] leading-[1.55]" style={{ color: '#6B6B6B' }}>{step.description}</p>
-          </Reveal>
-        ))}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {HOW_IT_WORKS_STEPS.map((step, i) => {
+          const Icon = STEP_ICONS[step.icon as keyof typeof STEP_ICONS];
+          const isLast = i === 2;
+          return (
+            <Reveal key={step.n}>
+              <div
+                className="relative h-full rounded-[18px] border p-[28px]"
+                style={{
+                  background: isLast ? '#0A2463' : '#fff',
+                  borderColor: isLast ? '#0A2463' : '#EAEAEA',
+                  boxShadow: isLast ? '0 24px 50px -28px rgba(10,36,99,0.5)' : 'none',
+                }}
+              >
+                <span
+                  className="absolute right-5 top-5 font-heading text-[34px] font-extrabold opacity-[0.12]"
+                  style={{ color: isLast ? '#fff' : '#0A2463' }}
+                >
+                  {step.n}
+                </span>
+                <div
+                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-[13px]"
+                  style={{ background: isLast ? '#00E87A' : '#00E87A14' }}
+                >
+                  <Icon size={22} color="#0A2463" strokeWidth={1.8} />
+                </div>
+                <h3 className="mb-2.5 font-heading text-[20px] font-semibold" style={{ color: isLast ? '#fff' : '#0A2463' }}>{step.title}</h3>
+                <p className="text-[15px] leading-[1.55]" style={{ color: isLast ? 'rgba(255,255,255,0.7)' : '#6B6B6B' }}>{step.description}</p>
+              </div>
+            </Reveal>
+          );
+        })}
       </div>
     </section>
   );
@@ -219,22 +234,23 @@ export function HowItWorks() {
 
 function ImpactTable({ rows }: { rows: { label: string; before: string; after: string }[] }) {
   return (
-    <div className="mx-auto max-w-[940px] overflow-hidden rounded-[24px] border bg-white" style={{ borderColor: '#EAEAEA', boxShadow: '0 30px 70px -42px rgba(10,36,99,0.3)' }}>
-      <div className="grid grid-cols-[1.15fr_1fr_1fr]">
-        <div className="p-[17px_28px]" />
-        <div className="p-[17px_22px] font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: '#9a9a9a' }}>Before Shipyard</div>
-        <div className="p-[17px_24px] font-mono text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ background: '#00E87A0a', color: '#0BA45E' }}>With Shipyard</div>
+    <div className="mx-auto flex max-w-[760px] flex-col gap-4">
+      <div className="grid grid-cols-[1fr_1fr] gap-4 px-1">
+        <div className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: '#9a9a9a' }}>Before Shipyard</div>
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: '#0BA45E' }}>With Shipyard</div>
       </div>
       {rows.map((row) => (
-        <div key={row.label} className="grid grid-cols-[1.15fr_1fr_1fr] items-center border-t" style={{ borderColor: '#EAEAEA' }}>
-          <div className="p-[22px_28px] text-[15.5px] font-semibold" style={{ color: '#0A2463' }}>{row.label}</div>
-          <div className="flex items-center gap-2.5 p-[22px_22px] text-[15px]" style={{ color: '#9a9a9a' }}>
-            <span className="block h-[2.4px] w-[12px] shrink-0 rounded" style={{ background: '#c4c4c4' }} />
-            {row.before}
-          </div>
-          <div className="flex items-center gap-2.5 p-[22px_24px] text-[16px] font-bold" style={{ background: '#00E87A0a', color: '#0A2463' }}>
-            <Check size={16} color="#00C9A7" strokeWidth={2.6} className="shrink-0" />
-            {row.after}
+        <div key={row.label} className="rounded-[16px] border bg-white p-5" style={{ borderColor: '#EAEAEA', boxShadow: '0 16px 36px -28px rgba(10,36,99,0.22)' }}>
+          <div className="mb-3 text-[14px] font-semibold" style={{ color: '#0A2463' }}>{row.label}</div>
+          <div className="grid grid-cols-[1fr_1fr] gap-4">
+            <div className="flex items-start gap-2.5 text-[14.5px] leading-[1.4]" style={{ color: '#9a9a9a' }}>
+              <span className="mt-[7px] block h-[2.4px] w-[10px] shrink-0 rounded" style={{ background: '#c4c4c4' }} />
+              {row.before}
+            </div>
+            <div className="flex items-start gap-2.5 text-[14.5px] font-semibold leading-[1.4]" style={{ color: '#0A2463' }}>
+              <Check size={15} color="#00C9A7" strokeWidth={2.8} className="mt-[2px] shrink-0" />
+              {row.after}
+            </div>
           </div>
         </div>
       ))}
@@ -336,10 +352,10 @@ export function FinalCTA() {
       <div className="pointer-events-none absolute -right-20 -top-[120px] h-[420px] w-[420px] rounded-full" style={{ background: 'radial-gradient(circle, #1E5FCC55, transparent 70%)' }} />
       <Reveal className="relative mx-auto max-w-[1180px] px-8 py-24 text-center">
         <h2 className="mb-[18px] font-heading text-[clamp(34px,5vw,50px)] font-extrabold leading-[1.08] tracking-[-0.03em] text-white">
-          Map your context in <span style={{ color: '#00E87A' }}>5 minutes.</span>
+          See your whole setup in <span style={{ color: '#00E87A' }}>5 minutes.</span>
         </h2>
         <p className="mx-auto mb-[34px] max-w-[480px] text-[18px] leading-[1.55]" style={{ color: 'rgba(255,255,255,0.7)' }}>
-          Read-only access. No YAML, no manual setup, no platform team required.
+          Read-only access. No setup files to write, no platform team required.
         </p>
         <a
           href="/signup"
@@ -347,7 +363,7 @@ export function FinalCTA() {
           style={{ background: '#00E87A', color: '#0A2463', boxShadow: '0 8px 24px rgba(0,232,122,0.3)' }}
         >
           <Target size={18} strokeWidth={2.2} />
-          Map your context
+          Get started free
         </a>
       </Reveal>
     </section>

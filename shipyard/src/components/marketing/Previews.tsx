@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
-import { DISCOVERY_TRACE, CATALOG_MOCK_SERVICES, CAPABILITIES, type CapabilityKey } from './data';
+import { DISCOVERY_TRACE, CATALOG_MOCK_SERVICES, CATALOG_MOCK_CARD_WIDTH, CAPABILITIES, type CapabilityKey } from './data';
 
 // ─── Hero: animated terminal discovery trace ─────────────────────────────────
 export function DiscoveryTerminal() {
@@ -129,10 +129,10 @@ export function CatalogMock() {
         >
           <div className="pointer-events-none absolute inset-y-0 w-20" style={{ background: 'linear-gradient(90deg, transparent, #00E87A22, transparent)', animation: 'dcScan 4s ease-in-out infinite' }} />
           <svg className="absolute inset-0 h-full w-full" viewBox="0 0 520 360" preserveAspectRatio="none">
-            <path d="M88 85 C 150 85, 200 85, 310 85" stroke="#1E5FCC" strokeWidth="1.6" fill="none" opacity="0.45" />
-            <path d="M88 85 C 150 85, 200 290, 299 290" stroke="#1E5FCC" strokeWidth="1.6" fill="none" opacity="0.45" />
-            <path d="M310 85 C 370 85, 400 70, 432 70" stroke="#00C9A7" strokeWidth="1.6" fill="none" opacity="0.5" />
-            <path d="M299 290 C 360 290, 400 275, 432 275" stroke="#00C9A7" strokeWidth="1.6" fill="none" opacity="0.5" />
+            <path d="M170 70 C 180 70, 185 70, 195 70" stroke="#1E5FCC" strokeWidth="1.6" fill="none" opacity="0.45" />
+            <path d="M170 70 C 180 100, 185 250, 195 280" stroke="#1E5FCC" strokeWidth="1.6" fill="none" opacity="0.45" />
+            <path d="M345 70 C 355 70, 360 70, 370 70" stroke="#00C9A7" strokeWidth="1.6" fill="none" opacity="0.5" />
+            <path d="M345 280 C 355 280, 360 280, 370 280" stroke="#00C9A7" strokeWidth="1.6" fill="none" opacity="0.5" />
           </svg>
           {CATALOG_MOCK_SERVICES.map((svc, i) => (
             <div
@@ -141,7 +141,8 @@ export function CatalogMock() {
               style={{
                 left: svc.left,
                 top: svc.top,
-                width: svc.name.length > 12 ? 150 : 128,
+                width: CATALOG_MOCK_CARD_WIDTH,
+                minHeight: 78,
                 borderColor: svc.highlight ? '#00E87A' : '#EAEAEA',
                 boxShadow: svc.highlight ? '0 10px 24px -8px rgba(0,232,122,0.4)' : '0 6px 16px -8px rgba(10,36,99,0.25)',
                 animation: `floaty 6s ease-in-out infinite ${i * 0.4}s`,

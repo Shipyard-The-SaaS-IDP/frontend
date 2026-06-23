@@ -8,14 +8,14 @@ export const DISCOVERY_TRACE = [
   { icon: '✓', iconColor: '#00E87A', color: 'rgba(255,255,255,0.9)', weight: 500, text: 'found notifications-worker' },
   { icon: '', iconColor: 'rgba(255,255,255,0.5)', color: 'rgba(255,255,255,0.5)', weight: 400, text: 'owner: Priya Shah · stack: Python, RabbitMQ' },
   { icon: '→', iconColor: '#00C9A7', color: 'rgba(255,255,255,0.9)', weight: 500, text: 'mapped 14 dependencies across 9 services' },
-  { icon: '✓', iconColor: '#00E87A', color: '#00E87A', weight: 600, text: 'catalog ready in 4.2s, 0 YAML files written' },
+  { icon: '✓', iconColor: '#00E87A', color: '#00E87A', weight: 600, text: 'catalog ready in 4.2s, nothing written by hand' },
 ];
 
 // ─── Problem section ──────────────────────────────────────────────────────────
 export const PROBLEM_CARDS = [
   {
-    title: 'Discovery never finishes',
-    description: 'Manual YAML is stale before the PR even merges.',
+    title: 'Docs go stale fast',
+    description: "By the time you write it down, it's already out of date.",
     icon: 'RotateCcw',
   },
   {
@@ -31,19 +31,23 @@ export const PROBLEM_CARDS = [
 ];
 
 // ─── Auto-discovery showcase: mock catalog cards ─────────────────────────────
+// Fixed width for every card (no per-name sizing) so left/top positions
+// below can be checked for overlap by hand: row 1 spans x:[20,170],
+// [195,345],[370,520]; row 2 spans the same three columns one row down.
+export const CATALOG_MOCK_CARD_WIDTH = 150;
 export const CATALOG_MOCK_SERVICES = [
-  { name: 'api-gateway', stack: 'Go · Redis', status: '#00E87A', owner: 'AR', ownerColor: '#1E5FCC', left: 24, top: 40 },
-  { name: 'payments-service', stack: 'Node.js · PostgreSQL', status: '#00E87A', owner: 'AR', ownerColor: '#00C9A7', left: 235, top: 40, highlight: true },
-  { name: 'auth-gateway', stack: 'Go · Redis', status: '#febc2e', owner: 'ML', ownerColor: '#7B42BC', left: 235, top: 245 },
-  { name: 'ledger-db', stack: 'PostgreSQL 15', status: '#00E87A', left: 368, top: 40 },
-  { name: 'notifications', stack: 'Python · RabbitMQ', status: '#00E87A', left: 368, top: 245 },
+  { name: 'api-gateway', stack: 'Go · Redis', status: '#00E87A', owner: 'AR', ownerColor: '#1E5FCC', left: 20, top: 30 },
+  { name: 'payments-service', stack: 'Node.js · PostgreSQL', status: '#00E87A', owner: 'AR', ownerColor: '#00C9A7', left: 195, top: 30, highlight: true },
+  { name: 'ledger-db', stack: 'PostgreSQL 15', status: '#00E87A', left: 370, top: 30 },
+  { name: 'auth-gateway', stack: 'Go · Redis', status: '#febc2e', owner: 'ML', ownerColor: '#7B42BC', left: 195, top: 240 },
+  { name: 'notifications', stack: 'Python · RabbitMQ', status: '#00E87A', left: 370, top: 240 },
 ];
 
 // ─── Capabilities showcase: Create / Maintain / Context ─────────────────────
 export const CAPABILITIES = {
   create: {
     label: 'Create',
-    description: 'Describe a service; Shipyard writes the infrastructure code.',
+    description: 'Describe what you need. Shipyard writes the code to build it.',
     icon: 'Plus',
     demoTitle: 'New service',
     demoTag: 'terraform plan',
@@ -60,7 +64,7 @@ export const CAPABILITIES = {
   },
   maintain: {
     label: 'Maintain',
-    description: 'Change live production safely, with a reviewable diff.',
+    description: 'Change what you already have running, safely.',
     icon: 'Wrench',
     demoTitle: 'Change request',
     demoTag: 'terraform apply',
@@ -75,8 +79,8 @@ export const CAPABILITIES = {
     ],
   },
   context: {
-    label: 'Context',
-    description: 'Ask anything about your stack and get a real answer.',
+    label: 'Ask',
+    description: 'Ask anything about your setup and get a real answer.',
     icon: 'HelpCircle',
     demoTitle: 'Ask anything',
     demoTag: 'live context',
@@ -97,18 +101,18 @@ export type CapabilityKey = keyof typeof CAPABILITIES;
 
 // ─── How it works ─────────────────────────────────────────────────────────────
 export const HOW_IT_WORKS_STEPS = [
-  { n: '1', title: 'Connect', description: 'Connect your codebases and environments. Two clicks, read-only.' },
-  { n: '2', title: 'Discover', description: 'Your full catalog populates itself, owners and all.' },
-  { n: '3', title: 'Build', description: 'Spin up new services in plain English. Shipyard writes the infrastructure code.' },
+  { n: '1', icon: 'Plug', title: 'Connect', description: 'Link your code and the tools you use. Two clicks, view-only access.' },
+  { n: '2', icon: 'Sparkles', title: 'Discover', description: 'Your catalog fills itself in, owners included.' },
+  { n: '3', icon: 'Hammer', title: 'Build', description: 'Describe what you need in plain English. Shipyard builds it.' },
 ];
 
 // ─── Impact: solo vs team ─────────────────────────────────────────────────────
 export const IMPACT_SOLO = {
-  description: "Connect once and see every service you touch, how it's wired, and what it depends on, without asking anyone.",
+  description: "Connect once and see everything you've built: what's connected to what, without asking anyone.",
   rows: [
     { label: 'Time to a full map', before: 'Days of digging through repos', after: '5 minutes' },
-    { label: 'Getting connected', before: 'Wire up apps one by one', after: '10 apps wired in, free' },
-    { label: 'YAML to maintain', before: 'Endless, and always stale', after: 'Zero lines, ever' },
+    { label: 'Getting connected', before: 'Connect each tool one by one', after: '10 tools connected, free' },
+    { label: 'Setup files to maintain', before: 'Endless, and always out of date', after: 'Zero, ever' },
   ],
 };
 

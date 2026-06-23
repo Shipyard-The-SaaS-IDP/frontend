@@ -60,10 +60,10 @@ const SvgKubernetes = () => (
   </svg>
 );
 const SvgAWS = () => (
-  <svg width="26" height="16" viewBox="0 0 104 62" fill="none">
-    <path d="M22 38l-7-24h-4L4 38h4l1.5-6h7L18 38h4zm-10-10l2.5-9.5L17 28H12zM42 38l-5-24h-4l-5 24h4l1.5-6h6L41 38h1zm-8-10l2-8 2 8h-4zM62 14l-5 24h-3l-3.5-16-3.5 16h-3l-5-24h4l3 15.5L50 14h4l3.5 15.5L61 14h1z" fill="#F59E0B"/>
-    <path d="M10 50Q40 64 74 52" stroke="#F59E0B" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-    <path d="M68 46 L75 52 L68 58" stroke="#F59E0B" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+  <svg width="34" height="20" viewBox="0 0 100 58" fill="none">
+    <text x="0" y="32" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="32" fill="#FF9900" letterSpacing="-1">aws</text>
+    <path d="M4 46Q40 60 80 47" stroke="#FF9900" strokeWidth="4" fill="none" strokeLinecap="round"/>
+    <path d="M73 41 L82 47 L73 54" stroke="#FF9900" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 const SvgDatadog = () => (
@@ -92,8 +92,8 @@ const SvgCircleCI = () => (
   </svg>
 );
 const SvgPagerDuty = () => (
-  <svg width="14" height="18" viewBox="0 0 40 54" fill="#06AC38">
-    <path d="M28 0H4v19.6h24C34.2 19.6 39 15 39 8.2S34.2 0 28 0zM4 25v29h9V25H4zM28 5.4c1.3 0 6 .5 6 2.8S29.3 14 28 14H13V5.4H28z"/>
+  <svg width="16" height="18" viewBox="0 0 40 54" fill="#06AC38">
+    <path d="M6 0h17c10 0 17 6.2 17 15.5S33 31 23 31H15v23H6V0zm9 8v15h8c5 0 8-3 8-7.5S28 8 23 8h-8z"/>
   </svg>
 );
 const SvgJira = () => (
