@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock, Calendar, Cloud, Kanban, FileText } from 'lucide-react';
+import { ArrowLeft, Star, AlertCircle, Lock, ExternalLink, Clock, Calendar, Cloud, Kanban, FileText, Mail } from 'lucide-react';
 import { BrandIcon } from '@/components/integrations/brand-icons';
 import {
   api, ApiError, type ConnectorsResponse, type ConnectorItem, type GithubReposResponse, type GsuiteEventsResponse,
-  type GcpServicesResponse, type TrelloBoardsResponse, type NotionPagesResponse,
+  type GsuiteEmailsResponse, type GcpServicesResponse, type TrelloBoardsResponse, type NotionPagesResponse,
 } from '@/lib/api';
 
 function GithubDeepDive({ connectorName }: { connectorName: string }) {
@@ -58,39 +58,80 @@ function GithubDeepDive({ connectorName }: { connectorName: string }) {
 }
 
 function GsuiteDeepDive({ connectorName }: { connectorName: string }) {
-  const [data, setData] = useState<GsuiteEventsResponse | null>(null);
+  const [tab, setTab] = useState<'calendar' | 'gmail'>('calendar');
+  const [events, setEvents] = useState<GsuiteEventsResponse | null>(null);
+  const [emails, setEmails] = useState<GsuiteEmailsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<GsuiteEventsResponse>('/connectors/gsuite/events')
-      .then(setData)
-      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load Calendar data.'));
+    Promise.all([
+      api.get<GsuiteEventsResponse>('/connectors/gsuite/events'),
+      api.get<GsuiteEmailsResponse>('/connectors/gsuite/emails'),
+    ]).then(([e, m]) => { setEvents(e); setEmails(m); })
+      .catch((e) => setError(e instanceof ApiError ? e.message : 'Could not load Google data.'));
   }, []);
 
   if (error) return <p style={{ color: '#ff5f57', fontSize: 14 }}>{error}</p>;
-  if (!data) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
+  if (!events || !emails) return <p style={{ color: '#9a9a9a', fontSize: 14 }}>Loading {connectorName} data…</p>;
 
   return (
     <div>
-      <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>Next {data.events.length} upcoming events on your primary calendar</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {data.events.map((e, i) => (
-          <a
-            key={i}
-            href={e.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px', textDecoration: 'none', transition: 'border-color 150ms ease' }}
-            onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = '#00E87A55'; }}
-            onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = '#EAEAEA'; }}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16, border: '1px solid #EAEAEA', borderRadius: 10, padding: 3, width: 'fit-content', background: '#FAFAFA' }}>
+        {([['calendar', 'Calendar'], ['gmail', 'Gmail']] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setTab(v)}
+            style={{
+              cursor: 'pointer', border: 'none', fontWeight: 600, fontSize: 12.5, padding: '6px 14px', borderRadius: 8,
+              background: tab === v ? '#fff' : 'transparent', color: tab === v ? '#0A2463' : '#9a9a9a',
+              boxShadow: tab === v ? '0 1px 4px rgba(10,36,99,0.12)' : 'none',
+            }}
           >
-            <Calendar size={14} color="#9a9a9a" />
-            <span style={{ fontWeight: 600, fontSize: 14, color: '#0A2463' }}>{e.title}</span>
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9a9a9a' }}>{new Date(e.start).toLocaleString()}</span>
-          </a>
+            {label}
+          </button>
         ))}
-        {data.events.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No upcoming events found.</p>}
       </div>
+
+      {tab === 'calendar' ? (
+        <div>
+          <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>Next {events.events.length} upcoming events on your primary calendar</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {events.events.map((e, i) => (
+              <a
+                key={i}
+                href={e.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px', textDecoration: 'none', transition: 'border-color 150ms ease' }}
+                onMouseEnter={(ev) => { ev.currentTarget.style.borderColor = '#00E87A55'; }}
+                onMouseLeave={(ev) => { ev.currentTarget.style.borderColor = '#EAEAEA'; }}
+              >
+                <Calendar size={14} color="#9a9a9a" />
+                <span style={{ fontWeight: 600, fontSize: 14, color: '#0A2463' }}>{e.title}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9a9a9a' }}>{new Date(e.start).toLocaleString()}</span>
+              </a>
+            ))}
+            {events.events.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No upcoming events found.</p>}
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p style={{ fontSize: 13.5, color: '#6B6B6B', margin: '0 0 18px' }}>Most recent {emails.emails.length} inbox messages</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {emails.emails.map((m, i) => (
+              <div key={i} style={{ border: '1px solid #EAEAEA', borderRadius: 12, padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Mail size={13} color="#9a9a9a" style={{ flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, fontSize: 13.5, color: '#0A2463', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject}</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#6B6B6B', marginBottom: 6 }}>{m.from}</div>
+                {m.snippet && <p style={{ fontSize: 12, color: '#9a9a9a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.snippet}</p>}
+              </div>
+            ))}
+            {emails.emails.length === 0 && <p style={{ color: '#9a9a9a', fontSize: 13.5 }}>No recent messages found.</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

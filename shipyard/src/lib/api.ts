@@ -151,6 +151,15 @@ export interface GsuiteEvent {
 export interface GsuiteEventsResponse {
   events: GsuiteEvent[];
 }
+export interface GsuiteEmail {
+  subject: string;
+  from: string;
+  date: string;
+  snippet: string;
+}
+export interface GsuiteEmailsResponse {
+  emails: GsuiteEmail[];
+}
 export interface GcpService {
   name: string;
   uri: string;

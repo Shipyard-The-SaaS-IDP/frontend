@@ -76,15 +76,15 @@ function PlanCard({ message, onApprove, onDeny }: { message: Message; onApprove:
               <span style={{ width: 28, height: 28, flex: 'none', borderRadius: 8, background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A2463' }}>
                 <Icon size={14} strokeWidth={1.8} />
               </span>
-              <div>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12.5, color: '#0A2463' }}>{r.title}</div>
-                <div style={{ fontSize: 11.5, color: '#6B6B6B' }}>{r.sub}</div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12.5, color: '#0A2463', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                <div style={{ fontSize: 11.5, color: '#6B6B6B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.sub}</div>
               </div>
             </div>
           );
         })}
         <div style={{ background: '#0A2463', borderRadius: 10, padding: '10px 13px', marginTop: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11.5, lineHeight: 1.8 }}>
-          {plan.planLines.map((l, i) => <div key={i} style={{ color: l.color, whiteSpace: 'pre-wrap' }}>{l.text}</div>)}
+          {plan.planLines.map((l, i) => <div key={i} style={{ color: l.color, whiteSpace: 'pre-wrap' }}>{l.text.replace(/`/g, '')}</div>)}
         </div>
 
         {status === 'pending' && (

@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, LayoutGrid, GitBranch, RefreshCw, ExternalLink } from 'lucide-react';
-import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse } from '@/lib/api';
+import { Search, LayoutGrid, GitBranch, RefreshCw, ExternalLink, ArrowUpRight } from 'lucide-react';
+import { api, ApiError, type MapResponse, type ServiceDetail, type ServicesResponse, type ConnectorsResponse } from '@/lib/api';
+import { BrandIcon } from '@/components/integrations/brand-icons';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -22,6 +23,14 @@ export default function CatalogPage() {
   const [error, setError] = useState<string | null>(null);
   const [rediscovering, setRediscovering] = useState(false);
   const [rediscoverNote, setRediscoverNote] = useState<string | null>(null);
+  const [connectedTools, setConnectedTools] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    api.get<ConnectorsResponse>('/connectors').then((res) => {
+      const tools = res.groups.flatMap((g) => g.items).filter((c) => c.connected && c.id !== 'github');
+      setConnectedTools(tools.map((c) => ({ id: c.id, name: c.name })));
+    }).catch(() => {});
+  }, []);
 
   const loadDetail = useCallback((id: string) => {
     api.get<ServiceDetail>(`/services/${id}`).then(setDetail);
@@ -140,14 +149,34 @@ export default function CatalogPage() {
           </div>
         </div>
         <p style={{ fontSize: 14.5, color: '#6B6B6B', margin: '0 0 8px' }}>
-          {view === 'list' ? 'Every service Shipyard discovered, always current.' : 'Live dependency graph, discovered from your code & environments.'}
+          {view === 'list'
+            ? 'Code services discovered from your connected repos, always current.'
+            : 'Live dependency graph, discovered from your code & environments.'}
         </p>
         {rediscoverNote && (
           <p style={{ fontSize: 12.5, color: rediscovering ? '#9a9a9a' : '#0BA45E', margin: '0 0 14px', fontFamily: 'var(--font-jetbrains-mono)' }}>
             {rediscoverNote}
           </p>
         )}
-        {!rediscoverNote && <div style={{ marginBottom: 22 }} />}
+        {!rediscoverNote && <div style={{ marginBottom: 14 }} />}
+
+        {connectedTools.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 22, padding: '10px 12px', background: '#FAFAFA', border: '1px solid #EAEAEA', borderRadius: 12 }}>
+            <span style={{ fontSize: 11.5, color: '#9a9a9a', fontWeight: 600, marginRight: 2 }}>Also connected:</span>
+            {connectedTools.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => router.push(`/integrations/${t.id}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: '1px solid #EAEAEA', background: '#fff',
+                  color: '#0A2463', fontWeight: 600, fontSize: 12, padding: '5px 10px', borderRadius: 999,
+                }}
+              >
+                <BrandIcon id={t.id} size={14} /> {t.name} <ArrowUpRight size={11} color="#9a9a9a" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {view === 'list' ? (
           <>
