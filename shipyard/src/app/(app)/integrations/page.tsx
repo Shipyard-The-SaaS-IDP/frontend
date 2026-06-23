@@ -224,8 +224,9 @@ export default function IntegrationsPage() {
 
   const connected = data?.groups.flatMap((g) => g.items).filter((c) => c.connected) ?? [];
   const discoverableGroups = data?.groups
-    .map((g) => ({ ...g, items: g.items.filter((c) => !c.connected) }))
+    .map((g) => ({ ...g, items: g.items.filter((c) => !c.connected && c.live) }))
     .filter((g) => g.items.length > 0) ?? [];
+  const notLiveYet = data?.groups.flatMap((g) => g.items).filter((c) => !c.connected && !c.live) ?? [];
 
   const cardGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 12 } as const;
 
@@ -281,7 +282,7 @@ export default function IntegrationsPage() {
               Coming soon
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
-              {COMING_SOON.map((c) => (
+              {[...notLiveYet.map((c) => ({ id: c.id, name: c.name })), ...COMING_SOON].map((c) => (
                 <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', border: '1px solid #EAEAEA', borderRadius: 12, background: '#FAFAFA', opacity: 0.7 }}>
                   <span style={{ width: 26, height: 26, borderRadius: 7, background: '#EAEAEA', color: '#9a9a9a', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {c.name[0]}

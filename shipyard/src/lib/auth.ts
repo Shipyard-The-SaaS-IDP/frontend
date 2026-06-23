@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { getCookieDomainAttr } from './api';
 
 export interface AuthUser {
   id: string;
@@ -31,5 +32,6 @@ export async function getUser(): Promise<AuthUser | null> {
 /** Client-side: clear auth cookie and redirect to /signup. */
 export function signOut() {
   document.cookie = 'shipyard_token=; path=/; max-age=0';
+  document.cookie = `shipyard_token=; path=/; max-age=0${getCookieDomainAttr()}`;
   window.location.href = '/signup';
 }

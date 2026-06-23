@@ -219,6 +219,11 @@ function ArchitectInner() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
       <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 140px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
+          {!historyLoaded && (
+            <div style={{ textAlign: 'center', padding: '100px 0 0', color: '#9a9a9a', fontSize: 13.5 }}>
+              Loading conversation…
+            </div>
+          )}
           {historyLoaded && messages.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 0 0' }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: '#00E87A14', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>

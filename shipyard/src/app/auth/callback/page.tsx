@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { api, type ConnectorsResponse } from '@/lib/api';
+import { api, getCookieDomainAttr, type ConnectorsResponse } from '@/lib/api';
 
 function ShipyardMark() {
   return (
@@ -26,8 +26,11 @@ function AuthCallbackInner() {
       return;
     }
 
-    // Store token in a cookie accessible to the Next.js middleware
-    document.cookie = `shipyard_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+    // Store token in a cookie accessible to the Next.js middleware. Scoped
+    // to the parent domain (not just the exact host) so logging in on
+    // getshipyard.dev or www.getshipyard.dev shares the session across
+    // both — otherwise a new tab on the other variant looks logged-out.
+    document.cookie = `shipyard_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${getCookieDomainAttr()}`;
 
     const explicitNext = searchParams.get('next');
     if (explicitNext) {

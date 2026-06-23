@@ -15,6 +15,22 @@ export function getClientToken(): string | null {
 }
 
 /**
+ * Without an explicit Domain attribute, a cookie set from www.getshipyard.dev
+ * is host-only and never sent to getshipyard.dev (or vice versa) — so
+ * logging in on one variant looked logged-out on the other in a new tab.
+ * Scoping to the registrable parent domain (".getshipyard.dev") shares the
+ * cookie across both. Returns "" for localhost/IP hosts, where there's no
+ * parent domain to share and a Domain attribute would just break things.
+ */
+export function getCookieDomainAttr(): string {
+  if (typeof window === 'undefined') return '';
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if (parts.length < 2 || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return '';
+  return `; domain=.${parts.slice(-2).join('.')}`;
+}
+
+/**
  * OAuth connectors (GitHub, Slack, …) are a real browser navigation, not a
  * fetch — so the Bearer-token pattern apiFetch uses doesn't apply. The
  * shipyard_token travels as a query param instead, which the backend
@@ -89,9 +105,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 /** shipyard_token is set client-side (see auth/callback/page.tsx), not by the
- * backend — clearing it client-side is the actual logout, no API call needed. */
+ * backend — clearing it client-side is the actual logout, no API call needed.
+ * Clears both the domain-scoped and (legacy) host-only variants, since
+ * cookies set before the domain-sharing fix won't have the Domain attribute. */
 export function logout(): void {
   document.cookie = 'shipyard_token=; path=/; max-age=0; SameSite=Lax';
+  document.cookie = `shipyard_token=; path=/; max-age=0; SameSite=Lax${getCookieDomainAttr()}`;
   window.location.href = '/signup';
 }
 
@@ -103,6 +122,7 @@ export interface ConnectorItem {
   category: string;
   required: boolean;
   connected: boolean;
+  live: boolean;
 }
 export interface ConnectorGroup {
   category: string;
